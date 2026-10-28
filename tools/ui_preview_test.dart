@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:ui' as ui;
 import 'package:taxi_driver_aa_dashboard/features/payment/payment_config.dart';
 import 'package:taxi_driver_aa_dashboard/features/payment/payment_panel.dart';
 import 'package:taxi_driver_aa_dashboard/features/payment/qr_codec.dart';
@@ -30,10 +31,12 @@ void main() {
     // pending ImageCache entry in the fake test clock's zone.
     await tester.pumpWidget(const MaterialApp(home: Scaffold()));
     await tester.runAsync(() async {
-      await precacheImage(
-        FileImage(File(payment.renderedPath)),
-        tester.element(find.byType(Scaffold)),
-      );
+      for (final path in [payment.renderedPath, payment.brandPath]) {
+        await precacheImage(
+          FileImage(File(path)),
+          tester.element(find.byType(Scaffold)),
+        );
+      }
     });
   }
 
@@ -51,6 +54,17 @@ void main() {
       await File(
         path,
       ).writeAsBytes(await renderPaymentQr(payload, verify: false));
+      final recorder = ui.PictureRecorder();
+      final canvas = Canvas(recorder);
+      canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(0, 10, 1200, 200), const Radius.circular(30)), Paint()..color = const Color(0xff006b55));
+      final painter = TextPainter(text: const TextSpan(text: 'TAXI XANH · LOGO MẪU', style: TextStyle(fontFamily: 'NotoSans', fontSize: 64, color: Colors.white)), textDirection: TextDirection.ltr)..layout();
+      painter.paint(canvas, const Offset(130, 60));
+      final picture = recorder.endRecording();
+      final logo = await picture.toImage(1200, 240);
+      final data = (await logo.toByteData(format: ui.ImageByteFormat.png))!;
+      final logoPath = '${temp.path}/brand.png';
+      await File(logoPath).writeAsBytes(data.buffer.asUint8List());
+      logo.dispose(); picture.dispose();
       payment = PaymentConfig(
         mode: 'generated',
         bankName: 'MẪU THỬ',
@@ -58,6 +72,7 @@ void main() {
         holder: 'KHONG CHUYEN TIEN',
         payload: payload,
         renderedPath: path,
+        brandPath: logoPath,
       );
     });
   });
@@ -97,6 +112,7 @@ void main() {
           ),
         );
         await tester.pump();
+        expect(find.byKey(const ValueKey('payment-brand')), findsOneWidget);
         expect(tester.takeException(), isNull);
         await expectLater(
           find.byKey(const ValueKey('preview')),

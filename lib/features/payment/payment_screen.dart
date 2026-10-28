@@ -299,12 +299,12 @@ class _PaymentScreenState extends State<PaymentScreen> {
             if (original.isNotEmpty)
               SizedBox(
                 height: 220,
-                child: Image.file(
+                child: ColoredBox(color: Colors.white, child: Image.file(
                   File(original),
                   fit: BoxFit.contain,
                   errorBuilder: (_, _, _) =>
                       const Text('Ảnh không còn; hãy chọn lại'),
-                ),
+                )),
               ),
             if (importedPayload.isNotEmpty)
               SwitchListTile(
@@ -408,11 +408,12 @@ class _PaymentScreenState extends State<PaymentScreen> {
         : SizedBox(
             width: 48,
             height: 48,
-            child: Image.file(
+            child: ColoredBox(color: Colors.white, child: Image.file(
               File(path),
+              filterQuality: FilterQuality.high,
               errorBuilder: (_, _, _) =>
                   const Icon(Icons.broken_image_outlined),
-            ),
+            )),
           ),
     title: Text(label),
     onTap: () => pick(role),

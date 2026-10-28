@@ -1,6 +1,6 @@
 # Taxi Xanh · Android Auto Dashboard
 
-**Giai đoạn 3 — v0.3.0: QR thanh toán ngoại tuyến.** Thanh đã nghiệm thu GĐ2 hoạt động ổn định trên VinFast VF e34 / Redmi Note 12 Pro Android 13, Android Auto có dây và không dây.
+**Giai đoạn 3 — v0.3.1: QR thanh toán ngoại tuyến.** Thanh đã nghiệm thu GĐ2 hoạt động ổn định trên VinFast VF e34 / Redmi Note 12 Pro Android 13, Android Auto có dây và không dây.
 
 ## Cài và thử trên điện thoại
 
@@ -12,13 +12,13 @@
 
 ## Thử trên xe khi đang đỗ
 
-- Chạm hàng QR để mở toàn cột phải trong **10 giây**; ô bản đồ bên trái giữ nguyên. Chạm lần nữa để đóng sớm. Hàng nhỏ ưu tiên toàn bộ diện tích cho mã; khi phóng to có thông tin và logo bên dưới.
+- Chạm hàng QR để mở toàn cột phải trong **10 giây**; ô bản đồ bên trái giữ nguyên. Chạm lần nữa để đóng sớm. Logo thương hiệu luôn ở ngay dưới QR, tận dụng chiều rộng ô và giữ đúng tỷ lệ; phóng to để đọc thông tin tài khoản. PNG trong suốt hiển thị trên nền trắng, logo được giữ tới 2048 px và lọc chất lượng cao.
 - Thử cả ảnh có sẵn và mã tự tạo, có/không logo. Nếu mã quá nhỏ, mở rộng cột phải trong **Chỉnh bố cục**. Kiểm tra khách ngồi sau quét được.
 - Bật **Ẩn số tài khoản dạng chữ** nếu muốn. QR luôn chứa tài khoản để nhận tiền; chữ có sẵn trong ảnh gốc vẫn hiện.
 - Tắt mạng, kết nối lại Android Auto và mở lại app: QR phải còn. Thử Lịch, Home và bố cục cũ.
 - **Xóa QR và logo đã lưu** có xác nhận, chỉ xóa dữ liệu thanh toán.
 
-Cổng GĐ3: CI xanh, CRC và dựng ảnh→giải mã đạt; Thanh quét bằng app ngân hàng và xác nhận đúng người nhận/tài khoản. Chờ nghiệm thu này trước khi bắt đầu bản đồ GĐ4. Bản đồ dẫn đường và media còn giữ chỗ.
+Cổng GĐ3: CI xanh, CRC và dựng ảnh→giải mã đạt; Thanh quét bằng app ngân hàng và xác nhận đúng người nhận/tài khoản. Thanh yêu cầu tiếp tục GĐ4 ngay sau bản sửa PNG/logo này; không chờ thêm một vòng xác nhận QR. Bản đồ dẫn đường và media còn giữ chỗ.
 
 ## Dữ liệu và kiểm tra
 

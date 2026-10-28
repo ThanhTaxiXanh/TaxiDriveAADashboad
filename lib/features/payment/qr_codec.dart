@@ -12,7 +12,12 @@ String? decodeQrBytes(Uint8List bytes) {
   try {
     final image = img.decodeImage(bytes);
     if (image == null) return null;
-    final rgba = image
+    // ZXing ignores alpha. Composite onto white before luminance conversion,
+    // otherwise transparent black pixels become a black background.
+    final opaque = img.Image(width: image.width, height: image.height, numChannels: 3);
+    img.fill(opaque, color: img.ColorRgb8(255, 255, 255));
+    img.compositeImage(opaque, image);
+    final rgba = opaque
         .convert(numChannels: 4)
         .getBytes(order: img.ChannelOrder.abgr);
     final source = RGBLuminanceSource(
@@ -47,7 +52,7 @@ Future<Uint8List> normalizePickedImage(String path, {bool logo = false}) async {
   ui.Codec? codec;
   ui.Image? image;
   try {
-    final maxSide = logo ? 768 : 2048;
+    const maxSide = 2048;
     final factor = math.min(
       1.0,
       maxSide / math.max(descriptor.width, descriptor.height),

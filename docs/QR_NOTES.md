@@ -17,7 +17,7 @@ Chỉ hỗ trợ tài khoản 1–19 chữ/số ASCII, BIN 6 số; tiền nguyê
 
 Bộ vẽ dùng qr_flutter mức H, đen trên trắng, lề đúng 4 module. Logo tròn gồm cả viền trắng 17% chiều rộng mã; ảnh vuông 1024 được kiểm tra bằng zxing2 trước khi lưu. Nếu kiểm tra không đạt, từ chối thay cấu hình đã lưu. Không đảm bảo mọi camera/app ngân hàng đọc được ở mọi khoảng cách — cần nghiệm thu vật lý.
 
-Ảnh gốc được giữ nguyên nội dung, chuyển PNG và thu nhỏ cạnh dài tối đa 2048; logo tối đa 768; ảnh chọn tối đa 20 MB, PNG lưu tối đa 8 MB. Toàn ảnh nằm vừa khung trên nền trắng, thêm viền ngoài bằng 4/29 cạnh khung. Với ảnh thẻ/QR cắt sát hoặc lẫn nền bên trong, không thể chứng nhận quiet zone của vùng mã khi chưa giải mã được; cần ảnh nguồn rõ hoặc dùng dựng lại. Không chèn logo giữa lên ảnh gốc.
+Ảnh gốc được giữ nguyên nội dung, chuyển PNG và thu nhỏ cạnh dài tối đa 2048; logo tối đa 2048; ảnh chọn tối đa 20 MB, PNG lưu tối đa 8 MB. PNG giữ kênh alpha; mọi khung xem ảnh/logo có nền trắng, bước giải mã alpha được ghép lên trắng trước ZXing. Logo thương hiệu luôn nằm ngay dưới QR, rộng tối đa bằng ô, giữ tỷ lệ và dùng lọc high. Toàn ảnh nằm vừa khung trên nền trắng, thêm viền ngoài bằng 4/29 cạnh khung. Với ảnh thẻ/QR cắt sát hoặc lẫn nền bên trong, không thể chứng nhận quiet zone của vùng mã khi chưa giải mã được; cần ảnh nguồn rõ hoặc dùng dựng lại. Không chèn logo giữa lên ảnh gốc.
 
 SQLite lịch không đổi. PaymentStorage native giữ một cấu hình và ảnh riêng dùng chung cho hai engine. Thao tác ghi chỉ trên điện thoại. Config commit thành công rồi mới dọn ảnh cũ; lỗi không thay config cũ. FileProvider chỉ chia sẻ nhật ký/sự kiện, không có đường dẫn payment. Không log payload/ảnh/tài khoản; EventChannel chỉ có paymentRevision.
 
@@ -25,4 +25,4 @@ SQLite lịch không đổi. PaymentStorage native giữ một cấu hình và �
 
 Tự động: CRC chuẩn, vector tĩnh công khai AE9F đối chiếu độc lập từ [vietnam-qr-pay](https://github.com/xuannghia/vietnam-qr-pay), TLV/round-trip/static/dynamic, số 0 đầu tài khoản, Unicode bỏ dấu, dữ liệu sai, dựng PNG thật rồi ZXing giải mã với/không logo ở payload thường và tối đa; chạm mở cột phải 10 giây, chạm đóng, tắt hàng khi đang mở.
 
-Thủ công trên VF e34: quét app ngân hàng cả ảnh và mã tự tạo, đối chiếu người nhận/tài khoản/tiền/nội dung; quét có logo; thử tắt mạng/mở lại/kết nối lại; kiểm tra lịch/Home. GĐ2 đã được Thanh xác nhận ổn định. GĐ3 chờ Thanh xác nhận trước GĐ4.
+Thủ công trên VF e34: quét app ngân hàng cả ảnh và mã tự tạo, đối chiếu người nhận/tài khoản/tiền/nội dung; quét có logo; thử tắt mạng/mở lại/kết nối lại; kiểm tra lịch/Home. GĐ2 đã được Thanh xác nhận ổn định. Thanh đã yêu cầu sửa PNG/logo rồi tiếp tục GĐ4 ngay, không chờ thêm xác nhận QR.
