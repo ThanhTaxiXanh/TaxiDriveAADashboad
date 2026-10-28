@@ -181,7 +181,7 @@ class _CalendarPanelState extends State<CalendarPanel> {
           );
         } else if (page == 1) {
           if (box.maxHeight < 370) {
-            body = Column(
+            body = SingleChildScrollView(child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
@@ -201,7 +201,7 @@ class _CalendarPanelState extends State<CalendarPanel> {
                   child: const Text('Xem tháng đầy đủ'),
                 ),
               ],
-            );
+            ));
           } else {
             body = monthGrid(today);
           }
@@ -345,10 +345,14 @@ class _CalendarPanelState extends State<CalendarPanel> {
                         children: [
                           Text(
                             '$day',
+                            maxLines: 1,
+                            softWrap: false,
                             style: const TextStyle(fontSize: 18, height: 1),
                           ),
                           Text(
                             '${lunar.day}',
+                            maxLines: 1,
+                            softWrap: false,
                             style: TextStyle(
                               fontSize: 16,
                               height: 1,
