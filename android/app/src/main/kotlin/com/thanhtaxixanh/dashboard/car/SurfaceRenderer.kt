@@ -92,11 +92,6 @@ class SurfaceRenderer(private val context: Context) {
         state.update("touches" to ((state.values["touches"] as Int) + 1))
     }
 
-    fun destroyed(container: SurfaceContainer) {
-        // Ignore a delayed destruction callback belonging to an older Surface.
-        if (container.surface == current?.surface) release()
-    }
-
     fun release() {
         view?.detachFromFlutterEngine()
         view = null

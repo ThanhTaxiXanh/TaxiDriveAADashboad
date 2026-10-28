@@ -42,7 +42,7 @@ private class SpikeScreen(context: CarContext) : Screen(context), SurfaceCallbac
         })
     }
     override fun onSurfaceAvailable(surfaceContainer: SurfaceContainer) = renderer.attach(surfaceContainer)
-    override fun onSurfaceDestroyed(surfaceContainer: SurfaceContainer) = renderer.destroyed(surfaceContainer)
+    override fun onSurfaceDestroyed(surfaceContainer: SurfaceContainer) = renderer.release()
     override fun onVisibleAreaChanged(visibleArea: Rect) = renderer.visible(visibleArea)
     override fun onClick(x: Float, y: Float) = renderer.click(x, y)
 
