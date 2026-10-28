@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'car_main.dart';
 import 'core/car_bridge.dart';
 import 'core/dashboard_theme.dart';
+import 'features/calendar/calendar_store.dart';
+import 'features/calendar/event_screen.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'core/dashboard_controller.dart';
 import 'features/settings/layout_settings.dart';
 import 'features/dashboard/spike_screen.dart';
@@ -25,9 +28,11 @@ class DashboardApp extends StatefulWidget {
 
 class _DashboardAppState extends State<DashboardApp> {
   final controller = DashboardController();
+  final calendar = CalendarStore();
   @override
   void dispose() {
     controller.dispose();
+    calendar.dispose();
     super.dispose();
   }
 
@@ -37,6 +42,9 @@ class _DashboardAppState extends State<DashboardApp> {
     builder: (context, _) {
       return MaterialApp(
         debugShowCheckedModeBanner: false,
+        locale: const Locale('vi', 'VN'),
+        supportedLocales: const [Locale('vi', 'VN')],
+        localizationsDelegates: GlobalMaterialLocalizations.delegates,
         theme: dashboardTheme(Brightness.light),
         darkTheme: dashboardTheme(Brightness.dark),
         themeMode: switch (controller.config.theme) {
@@ -50,16 +58,25 @@ class _DashboardAppState extends State<DashboardApp> {
                 : ThemeMode.system,
         },
         home: widget.car
-            ? DashboardScreen(controller: controller, car: true)
-            : DiagnosticsScreen(controller: controller),
+            ? DashboardScreen(
+                controller: controller,
+                car: true,
+                calendar: calendar,
+              )
+            : DiagnosticsScreen(controller: controller, calendar: calendar),
       );
     },
   );
 }
 
 class DiagnosticsScreen extends StatefulWidget {
-  const DiagnosticsScreen({super.key, required this.controller});
+  const DiagnosticsScreen({
+    super.key,
+    required this.controller,
+    required this.calendar,
+  });
   final DashboardController controller;
+  final CalendarStore calendar;
   @override
   State<DiagnosticsScreen> createState() => _DiagnosticsScreenState();
 }
@@ -80,7 +97,7 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
           padding: const EdgeInsets.all(20),
           children: [
             const Text(
-              'Giai đoạn 1 · Bố cục bảng điều khiển',
+              'Giai đoạn 2 · Lịch Âm/Dương và sự kiện',
               style: TextStyle(fontSize: 22),
             ),
             const SizedBox(height: 16),
@@ -114,11 +131,21 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
               label: const Text('Chia sẻ nhật ký'),
             ),
             if (error != null) Text(error!),
+            FilledButton(
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => EventScreen(store: widget.calendar),
+                ),
+              ),
+              child: const Text('Lịch và sự kiện'),
+            ),
             OutlinedButton(
               onPressed: () => Navigator.of(context).push(
                 MaterialPageRoute<void>(
-                  builder: (_) =>
-                      DashboardScreen(controller: widget.controller),
+                  builder: (_) => DashboardScreen(
+                    controller: widget.controller,
+                    calendar: widget.calendar,
+                  ),
                 ),
               ),
               child: const Text('Xem trước bố cục'),
@@ -148,8 +175,8 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
             ),
             const SizedBox(height: 16),
             const Text(
-              'Chưa có bản đồ, lịch âm, QR thanh toán và media. '
-              'Đã xác nhận hiển thị và chạm trên VF e34. Đang thử bố cục và đồng bộ cấu hình.',
+              'Đã có lịch Âm/Dương và sự kiện. Bản đồ dẫn đường, QR thanh toán và media đang giữ chỗ. '
+              'Bố cục Giai đoạn 1 đã được Thanh xác nhận chạy mượt trên VF e34.',
             ),
           ],
         );

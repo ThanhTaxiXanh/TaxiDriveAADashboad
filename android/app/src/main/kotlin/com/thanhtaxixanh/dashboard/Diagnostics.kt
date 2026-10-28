@@ -10,12 +10,13 @@ import org.json.JSONArray
 
 // Main-thread only. Fixed, technical fields: never accepts free-form Dart logs.
 class Diagnostics(context: Context) {
+    val calendar by lazy { EventDatabase(context.applicationContext) }
     private val prefs = context.getSharedPreferences("dashboard", Context.MODE_PRIVATE)
     private val file = File(context.filesDir, "diagnostics.txt")
     private val listeners = mutableSetOf<EventChannel.EventSink>()
     val values = mutableMapOf<String, Any>(
         "surface" to false, "firstFrame" to false, "touches" to 0, "fps" to 0.0,
-        "layout" to (prefs.getString("layout", "{}") ?: "{}"), "panel" to "dashboard"
+        "layout" to (prefs.getString("layout", "{}") ?: "{}"), "panel" to "dashboard", "calendarRevision" to 0L
     )
     fun update(vararg entries: Pair<String, Any>) {
         values.putAll(entries)
@@ -43,9 +44,10 @@ class Diagnostics(context: Context) {
         prefs.edit().putString("layout", json).apply()
         update("layout" to json)
     }
+    fun calendarChanged() { update("calendarRevision" to ((values["calendarRevision"] as Long) + 1), "calendarError" to "Không") }
     fun add(sink: EventChannel.EventSink) { listeners.add(sink); sink.success(HashMap(values)) }
     fun remove(sink: EventChannel.EventSink?) { listeners.remove(sink) }
-    fun export(): String = "Taxi Xanh / phase 1\n$values\n" + if (file.exists()) file.readText() else ""
+    fun export(): String = "Taxi Xanh / phase 2\n$values\n" + if (file.exists()) file.readText() else ""
 }
 
 class DashboardBridge(engine: FlutterEngine, private val state: Diagnostics, share: (() -> Unit)? = null) {
@@ -55,6 +57,23 @@ class DashboardBridge(engine: FlutterEngine, private val state: Diagnostics, sha
     init {
         methods.setMethodCallHandler { call, result ->
             when (call.method) {
+                "getCalendar" -> {
+                    try { result.success(state.calendar.archive()) }
+                    catch (e: Exception) { state.update("calendarError" to e.javaClass.simpleName); result.error("CALENDAR_READ", "Không đọc được lịch", null) }
+                }
+                "saveEvent", "toggleEvent", "deleteEvent", "setMonthly", "importCalendar" -> {
+                    if (share == null) result.error("PHONE_ONLY", "Chỉ sửa sự kiện trên điện thoại", null)
+                    else try {
+                        when (call.method) {
+                            "saveEvent" -> state.calendar.save(call.argument<String>("event") ?: error("Missing event"))
+                            "toggleEvent" -> state.calendar.toggle(call.argument<String>("id") ?: error("Missing id"), call.argument<Boolean>("enabled") ?: error("Missing enabled"))
+                            "deleteEvent" -> state.calendar.delete(call.argument<String>("id") ?: error("Missing id"))
+                            "setMonthly" -> state.calendar.monthly(call.argument<Boolean>("enabled") ?: error("Missing enabled"))
+                            "importCalendar" -> state.calendar.importArchive(call.argument<String>("json") ?: error("Missing JSON"))
+                        }
+                        state.calendarChanged(); result.success(null)
+                    } catch (e: Exception) { state.update("calendarError" to e.javaClass.simpleName); result.error("CALENDAR_WRITE", "Không lưu được; dữ liệu hoặc ngày không hợp lệ", null) }
+                }
                 "saveLayout" -> {
                     try {
                         state.saveLayout(call.argument<Map<String, Any>>("layout") ?: error("Missing layout"))
