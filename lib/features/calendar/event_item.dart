@@ -103,8 +103,7 @@ class EventItem {
           }
           if (solar != null) {
             final date = DateTime.utc(solar[2], solar[1], solar[0]);
-            if (!date.isBefore(today) &&
-                (year != null || !date.isAfter(end)))
+            if (!date.isBefore(today) && (year != null || !date.isAfter(end)))
               result.add(
                 EventOccurrence(this, date, leap: leap, adjusted: adjusted),
               );
