@@ -54,8 +54,8 @@ class NavigationState(private val context: Context) {
             .put("voiceReady", voiceReady).put("gesture", gesture).put("scale", scale)
         fix?.let { p ->
             data.put("fix", JSONObject().put("lat", p.latitude).put("lon", p.longitude).put("accuracy", p.accuracy.toDouble())
-                .put("speed", if (p.hasSpeed()) p.speed.coerceAtLeast(0f).toDouble() else 0.0)
-                .put("bearing", if (p.hasBearing()) p.bearing.toDouble() else -1.0).put("time", p.time))
+                .put("speed", if (p.hasSpeed() && p.speed.isFinite()) p.speed.coerceAtLeast(0f).toDouble() else -1.0)
+                .put("bearing", if (p.hasBearing() && p.bearing.isFinite()) p.bearing.toDouble() else -1.0).put("time", p.time))
         }
         return data.toString()
     }
@@ -63,6 +63,7 @@ class NavigationState(private val context: Context) {
     fun add(sink: EventChannel.EventSink) { listeners.add(sink); sink.success(snapshot()) }
     fun remove(sink: EventChannel.EventSink?) { listeners.remove(sink) }
     fun location(value: Location) {
+        if (!value.hasAccuracy()) return
         if (!value.latitude.isFinite() || !value.longitude.isFinite() || !value.accuracy.isFinite() || value.accuracy < 0 || value.latitude !in -90.0..90.0 || value.longitude !in -180.0..180.0) return
         if (SystemClock.elapsedRealtimeNanos() - value.elapsedRealtimeNanos > 15_000_000_000L) return
         val old = fix
@@ -97,10 +98,15 @@ class NavigationState(private val context: Context) {
         prefs.edit().putString("goal", p.toString()).apply(); savePlace(p)
     }
     fun stop(arrived: Boolean = false) {
+        if (arrived && !active) return
         active = false; goalRevision++; lease = null; leaseUntil = 0
         if (!arrived) { routeFile.delete(); routeRevision++ }
         status = if (arrived) "Đã đến nơi" else "Đã dừng dẫn đường"
-        tts?.stop(); audio.abandonAudioFocusRequest(focus); emit()
+        tts?.stop(); audio.abandonAudioFocusRequest(focus)
+        if (arrived && voiceReady && settings.optBoolean("voice", true) && audio.requestAudioFocus(focus) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
+            tts?.speak("Bạn đã đến nơi", TextToSpeech.QUEUE_FLUSH, null, "arrived-$routeRevision")
+        }
+        emit()
     }
     fun claim(revision: Long): String? {
         val now = SystemClock.elapsedRealtime()

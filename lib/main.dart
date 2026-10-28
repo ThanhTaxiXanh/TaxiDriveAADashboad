@@ -159,8 +159,14 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
               child: const Text('Lịch và sự kiện'),
             ),
             FilledButton.icon(
-              onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => NavigationScreen(navigation: widget.navigation))),
-              icon: const Icon(Icons.navigation), label: const Text('Bản đồ và dẫn đường'),
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) =>
+                      NavigationScreen(navigation: widget.navigation),
+                ),
+              ),
+              icon: const Icon(Icons.navigation),
+              label: const Text('Bản đồ và dẫn đường'),
             ),
             ListenableBuilder(
               listenable: widget.payment,

@@ -19,6 +19,9 @@ def probe(name, callback):
         report[name] = {'ok': True, **callback()}
     except Exception as exc:
         report[name] = {'ok': False, 'errorClass': type(exc).__name__}
+        if isinstance(exc, urllib.error.HTTPError):
+            report[name]['status'] = exc.code
+            report[name]['detail'] = exc.read(1000).decode('utf-8', errors='replace')
 
 probe('style', lambda: {'layers': len(get('https://tiles.openfreemap.org/styles/liberty')['layers'])})
 probe('dark', lambda: {'layers': len(get('https://tiles.openfreemap.org/styles/dark')['layers'])})
