@@ -1,0 +1,20 @@
+name: Public bank snapshot
+on:
+  workflow_dispatch:
+  push:
+    branches: ['feat/phase-3-qr']
+    paths: ['tools/update_banks.py', '.github/workflows/bank-data.yml']
+permissions:
+  contents: read
+jobs:
+  banks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - run: python3 tools/update_banks.py
+      - uses: actions/upload-artifact@v4.6.2
+        with:
+          name: public-bank-snapshot
+          path: assets/banks_vn.json
+          if-no-files-found: error
