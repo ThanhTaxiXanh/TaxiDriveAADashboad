@@ -120,11 +120,12 @@ class PaymentPanel extends StatelessWidget {
                               textAlign: TextAlign.center,
                               style: body,
                             ),
-                          Text(
-                            'Chạm để thu gọn · Tự đóng sau 10 giây',
-                            textAlign: TextAlign.center,
-                            style: body,
-                          ),
+                          if (onTap != null)
+                            Text(
+                              'Chạm để thu gọn · Tự đóng sau 10 giây',
+                              textAlign: TextAlign.center,
+                              style: body,
+                            ),
                         ],
                       ),
                     ),

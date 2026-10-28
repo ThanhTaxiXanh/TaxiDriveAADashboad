@@ -21,30 +21,34 @@ void main() {
     final loader = FontLoader('NotoSans')
       ..addFont(rootBundle.load('assets/fonts/NotoSans-Regular.ttf'));
     await loader.load();
-    temp = await Directory.systemTemp.createTemp('taxi-qr-preview-');
-    final payload = const VietQr(
-      bin: '970436',
-      account: '0000000000',
-      amount: '10000',
-      note: 'MA THU KHONG CHUYEN TIEN',
-    ).build();
-    final path = '${temp.path}/sample.png';
-    await File(
-      path,
-    ).writeAsBytes(await renderPaymentQr(payload, verify: false));
-    payment = PaymentConfig(
-      mode: 'generated',
-      bankName: 'MẪU THỬ',
-      account: '0000000000',
-      holder: 'KHONG CHUYEN TIEN',
-      payload: payload,
-      renderedPath: path,
-    );
     events = EventArchive.fromJson(
       jsonDecode(await rootBundle.loadString('assets/events_vn.json')),
     ).events;
   });
   tearDownAll(() async => temp.delete(recursive: true));
+  testWidgets('Prepare offline QR sample', (tester) async {
+    await tester.runAsync(() async {
+      temp = await Directory.systemTemp.createTemp('taxi-qr-preview-');
+      final payload = const VietQr(
+        bin: '970436',
+        account: '0000000000',
+        amount: '10000',
+        note: 'MA THU KHONG CHUYEN TIEN',
+      ).build();
+      final path = '${temp.path}/sample.png';
+      await File(
+        path,
+      ).writeAsBytes(await renderPaymentQr(payload, verify: false));
+      payment = PaymentConfig(
+        mode: 'generated',
+        bankName: 'MẪU THỬ',
+        account: '0000000000',
+        holder: 'KHONG CHUYEN TIEN',
+        payload: payload,
+        renderedPath: path,
+      );
+    });
+  });
   for (final size in [
     const Size(1280, 720),
     const Size(1920, 720),
@@ -79,6 +83,12 @@ void main() {
             ),
           ),
         );
+        await tester.runAsync(() async {
+          await precacheImage(
+            FileImage(File(payment.renderedPath)),
+            tester.element(find.byType(DashboardFrame)),
+          );
+        });
         await tester.pump();
         expect(tester.takeException(), isNull);
         await expectLater(
