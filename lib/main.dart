@@ -58,7 +58,11 @@ class _DashboardAppState extends State<DashboardApp> {
                 : ThemeMode.system,
         },
         home: widget.car
-            ? DashboardScreen(controller: controller, car: true, calendar: calendar)
+            ? DashboardScreen(
+                controller: controller,
+                car: true,
+                calendar: calendar,
+              )
             : DiagnosticsScreen(controller: controller, calendar: calendar),
       );
     },
@@ -66,7 +70,11 @@ class _DashboardAppState extends State<DashboardApp> {
 }
 
 class DiagnosticsScreen extends StatefulWidget {
-  const DiagnosticsScreen({super.key, required this.controller, required this.calendar});
+  const DiagnosticsScreen({
+    super.key,
+    required this.controller,
+    required this.calendar,
+  });
   final DashboardController controller;
   final CalendarStore calendar;
   @override
@@ -123,12 +131,21 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
               label: const Text('Chia sẻ nhật ký'),
             ),
             if (error != null) Text(error!),
-            FilledButton(onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => EventScreen(store: widget.calendar))), child: const Text('Lịch và sự kiện')),
+            FilledButton(
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => EventScreen(store: widget.calendar),
+                ),
+              ),
+              child: const Text('Lịch và sự kiện'),
+            ),
             OutlinedButton(
               onPressed: () => Navigator.of(context).push(
                 MaterialPageRoute<void>(
-                  builder: (_) =>
-                      DashboardScreen(controller: widget.controller, calendar: widget.calendar),
+                  builder: (_) => DashboardScreen(
+                    controller: widget.controller,
+                    calendar: widget.calendar,
+                  ),
                 ),
               ),
               child: const Text('Xem trước bố cục'),

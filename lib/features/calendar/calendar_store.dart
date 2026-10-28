@@ -10,7 +10,10 @@ class CalendarStore extends ChangeNotifier {
     if (connected) {
       subscription = CarBridge.watch().listen((event) {
         final next = event['calendarRevision'] as int? ?? 0;
-        if (next != revision) { revision = next; unawaited(reload()); }
+        if (next != revision) {
+          revision = next;
+          unawaited(reload());
+        }
       });
       unawaited(reload());
     }
@@ -29,26 +32,48 @@ class CalendarStore extends ChangeNotifier {
     final token = ++generation;
     try {
       final raw = await CarBridge.methods.invokeMethod<String>('getCalendar');
-      final archive = EventArchive.fromJson(jsonDecode(raw!) as Map<String, dynamic>);
+      final archive = EventArchive.fromJson(
+        jsonDecode(raw!) as Map<String, dynamic>,
+      );
       if (closed || token != generation) return;
       events = List.unmodifiable(archive.events);
       showMonthly = archive.showMonthly;
       ready = true;
       error = null;
       notifyListeners();
-    } catch (_) { if (!closed && token == generation) { error = 'Không đọc được sự kiện. Hãy thử mở lại ứng dụng.'; notifyListeners(); } }
+    } catch (_) {
+      if (!closed && token == generation) {
+        error = 'Không đọc được sự kiện. Hãy thử mở lại ứng dụng.';
+        notifyListeners();
+      }
+    }
   }
-  Future<void> save(EventItem event) => CarBridge.methods.invokeMethod('saveEvent', {'event': jsonEncode(event.toJson())});
-  Future<void> toggle(EventItem event, bool enabled) => CarBridge.methods.invokeMethod('toggleEvent', {'id': event.id, 'enabled': enabled});
-  Future<void> delete(EventItem event) => CarBridge.methods.invokeMethod('deleteEvent', {'id': event.id});
-  Future<void> setMonthly(bool enabled) => CarBridge.methods.invokeMethod('setMonthly', {'enabled': enabled});
-  Future<void> export() => files.invokeMethod('export', {'json': jsonEncode(EventArchive(events, showMonthly: showMonthly).toJson())});
+
+  Future<void> save(EventItem event) => CarBridge.methods.invokeMethod(
+    'saveEvent',
+    {'event': jsonEncode(event.toJson())},
+  );
+  Future<void> toggle(EventItem event, bool enabled) => CarBridge.methods
+      .invokeMethod('toggleEvent', {'id': event.id, 'enabled': enabled});
+  Future<void> delete(EventItem event) =>
+      CarBridge.methods.invokeMethod('deleteEvent', {'id': event.id});
+  Future<void> setMonthly(bool enabled) =>
+      CarBridge.methods.invokeMethod('setMonthly', {'enabled': enabled});
+  Future<void> export() => files.invokeMethod('export', {
+    'json': jsonEncode(EventArchive(events, showMonthly: showMonthly).toJson()),
+  });
   Future<EventArchive?> pickImport() async {
     final raw = await files.invokeMethod<String>('import');
     if (raw == null) return null;
     return EventArchive.fromJson(jsonDecode(raw) as Map<String, dynamic>);
   }
-  Future<void> importArchive(EventArchive archive) => CarBridge.methods.invokeMethod('importCalendar', {'json': jsonEncode(archive.toJson())});
+
+  Future<void> importArchive(EventArchive archive) => CarBridge.methods
+      .invokeMethod('importCalendar', {'json': jsonEncode(archive.toJson())});
   @override
-  void dispose() { closed = true; subscription?.cancel(); super.dispose(); }
+  void dispose() {
+    closed = true;
+    subscription?.cancel();
+    super.dispose();
+  }
 }

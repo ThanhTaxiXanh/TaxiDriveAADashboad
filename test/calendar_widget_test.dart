@@ -32,7 +32,7 @@ void main() {
   testWidgets('Calendar expands only right column and collapse restores rows', (tester) async {
     tester.view.physicalSize = const Size(803, 843); tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize); addTearDown(tester.view.resetDevicePixelRatio);
-    await tester.pumpWidget(MaterialApp(home: Scaffold(body: DashboardFrame(config: LayoutConfig(leftFraction: .75, fontScale: 1.6), today: DateTime.utc(2026, 10, 28))))));
+    await tester.pumpWidget(MaterialApp(home: Scaffold(body: DashboardFrame(config: LayoutConfig(leftFraction: .75, fontScale: 1.6), today: DateTime.utc(2026, 10, 28)))));
     await tester.tap(find.byTooltip('Mở lịch đầy đủ')); await tester.pump();
     expect(find.byKey(const ValueKey('map-panel')), findsOneWidget);
     expect(find.byKey(const ValueKey('row-1')), findsNothing);
