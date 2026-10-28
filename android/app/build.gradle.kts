@@ -19,7 +19,7 @@ android {
     }
     defaultConfig {
         applicationId = "com.thanhtaxixanh.dashboard"
-        minSdk = 28
+        minSdk = 29
         targetSdk = 36
         versionCode = flutter.versionCode
         versionName = flutter.versionName
