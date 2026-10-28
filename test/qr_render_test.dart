@@ -1,4 +1,6 @@
 import 'dart:typed_data';
+import 'dart:io';
+import 'package:image/image.dart' as img;
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -58,6 +60,41 @@ void main() {
       });
     },
   );
+  testWidgets('Transparent PNG stays transparent and decodes on a white mat', (
+    tester,
+  ) async {
+    await tester.runAsync(() async {
+      final payload = const VietQr(
+        bin: '970436',
+        account: '0123456789',
+      ).build();
+      final png = await renderPaymentQr(payload, verify: false);
+      final source = img.decodePng(png)!.convert(numChannels: 4);
+      for (final p in source) {
+        if (p.r > 245 && p.g > 245 && p.b > 245) {
+          p
+            ..r = 0
+            ..g = 0
+            ..b = 0
+            ..a = 0;
+        }
+      }
+      final transparent = img.encodePng(source);
+      expect(decodeQrBytes(transparent), payload);
+      final folder = await Directory.systemTemp.createTemp('alpha-qr-test-');
+      try {
+        final file = File('${folder.path}/transparent.png');
+        await file.writeAsBytes(transparent);
+        final normalized = img.decodePng(
+          await normalizePickedImage(file.path, logo: true),
+        )!;
+        expect(normalized.getPixel(0, 0).a, 0);
+        expect(normalized.width, 1024);
+      } finally {
+        await folder.delete(recursive: true);
+      }
+    });
+  });
   test('Unreadable source image returns null', () {
     expect(decodeQrBytes(Uint8List.fromList([1, 2, 3])), isNull);
   });
