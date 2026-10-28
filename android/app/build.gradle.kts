@@ -1,9 +1,12 @@
+import java.util.Properties
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("dev.flutter.flutter-gradle-plugin")
 }
-val signing = java.util.Properties()
+val signing = Properties()
 val signingFile = rootProject.file("key.properties")
 if (signingFile.exists()) signingFile.inputStream().use { signing.load(it) }
 android {
@@ -14,7 +17,6 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-    kotlinOptions { jvmTarget = "17" }
     defaultConfig {
         applicationId = "com.thanhtaxixanh.dashboard"
         minSdk = 28
@@ -36,6 +38,7 @@ android {
         }
     }
 }
+kotlin { compilerOptions { jvmTarget.set(JvmTarget.JVM_17) } }
 flutter { source = "../.." }
 dependencies {
     implementation("androidx.car.app:app-projected:1.7.0")
