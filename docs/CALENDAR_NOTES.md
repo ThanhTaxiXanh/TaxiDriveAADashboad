@@ -10,6 +10,7 @@ Ngày hiện tại luôn lấy UTC+7 từ thời điểm UTC, không phụ thu�
 
 ## Nguồn đối chiếu
 
+- [Bảng lịch 2023 của Hong Kong Observatory](https://www.hko.gov.hk/en/gts/time/calendar/pdf/files/2023e.pdf) và [2025](https://www.hko.gov.hk/en/gts/time/calendar/pdf/files/2025e.pdf) cho hai mốc tháng lặp trong test. HKO dùng UTC+8; chỉ đối chiếu hai mốc trùng kết quả (22/3/2023 và 25/7/2025), không dùng lịch HKO thay lịch Việt Nam UTC+7.
 - Tệp `reference/LunarCalendar.kt` và các vector do Thanh cung cấp trong đặc tả.
 - [Mùng 1 Tết 2024 là 10/2/2024](https://www2.en.baochinhphu.vn/kiem-tra-du-an-duong-day-500kv-mach-3-ngay-dau-nam-moi-10224021109124226.htm).
 - [Mùng 1 Tết 2025 là 29/1/2025](https://baochinhphu.vn/da-nang-nhon-nhip-chao-don-du-khach-quoc-te-xong-dat-dau-nam-102250129115334451.htm).

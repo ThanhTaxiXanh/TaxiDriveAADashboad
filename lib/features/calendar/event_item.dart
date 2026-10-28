@@ -32,7 +32,7 @@ class EventItem {
         color < 0 ||
         color > 0xffffffff)
       throw FormatException('Sự kiện có trường không hợp lệ');
-    if (source == 'user' && !id.startsWith('user_'))
+    if (source == 'user' && !RegExp(r'^user_[A-Za-z0-9_-]{1,75}$').hasMatch(id))
       throw FormatException('ID sự kiện riêng không hợp lệ');
   }
   final String id;
@@ -91,7 +91,7 @@ class EventItem {
         if (date.month == month &&
             date.day == day &&
             !date.isBefore(today) &&
-            !date.isAfter(end))
+            (year != null || !date.isAfter(end)))
           result.add(EventOccurrence(this, date));
       } else {
         for (final leap in includeLeap ? [false, true] : [false]) {
@@ -103,7 +103,8 @@ class EventItem {
           }
           if (solar != null) {
             final date = DateTime.utc(solar[2], solar[1], solar[0]);
-            if (!date.isBefore(today) && !date.isAfter(end))
+            if (!date.isBefore(today) &&
+                (year != null || !date.isAfter(end)))
               result.add(
                 EventOccurrence(this, date, leap: leap, adjusted: adjusted),
               );

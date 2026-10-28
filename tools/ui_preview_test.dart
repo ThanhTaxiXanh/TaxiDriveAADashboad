@@ -14,7 +14,9 @@ void main() {
     final loader = FontLoader('NotoSans')
       ..addFont(rootBundle.load('assets/fonts/NotoSans-Regular.ttf'));
     await loader.load();
-    events = EventArchive.fromJson(jsonDecode(await rootBundle.loadString('assets/events_vn.json'))).events;
+    events = EventArchive.fromJson(
+      jsonDecode(await rootBundle.loadString('assets/events_vn.json')),
+    ).events;
   });
   for (final size in [
     const Size(1280, 720),
@@ -66,11 +68,27 @@ void main() {
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
-      await tester.pumpWidget(MaterialApp(theme: dashboardTheme(Brightness.dark), home: Scaffold(body: CalendarPanel(key: const ValueKey('calendar-preview'), today: DateTime.utc(2026, 10, 28), events: events, expanded: true, initialPage: page, onCollapse: () {}))));
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: dashboardTheme(Brightness.dark),
+          home: Scaffold(
+            body: CalendarPanel(
+              key: const ValueKey('calendar-preview'),
+              today: DateTime.utc(2026, 10, 28),
+              events: events,
+              expanded: true,
+              initialPage: page,
+              onCollapse: () {},
+            ),
+          ),
+        ),
+      );
       await tester.pump();
       expect(tester.takeException(), isNull);
-      await expectLater(find.byKey(const ValueKey('calendar-preview')), matchesGoldenFile('../build/previews/calendar-page-$page.png'));
+      await expectLater(
+        find.byKey(const ValueKey('calendar-preview')),
+        matchesGoldenFile('../build/previews/calendar-page-$page.png'),
+      );
     });
   }
-
 }
