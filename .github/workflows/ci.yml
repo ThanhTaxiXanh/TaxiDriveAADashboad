@@ -1,0 +1,98 @@
+name: CI
+on:
+  push:
+    branches: [main, dev, 'feat/**']
+  pull_request:
+  workflow_dispatch:
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - uses: actions/setup-java@v4.7.1
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@v2.21.0
+        with:
+          channel: stable
+          flutter-version: '3.47.1'
+          cache: true
+      - run: bash tools/bootstrap_android.sh
+      - run: flutter pub get
+      - name: Check formatting
+        run: |
+          dart format --output=show lib test > formatter-output.txt
+          dart format --output=none --set-exit-if-changed lib test
+      - run: flutter analyze
+      - run: flutter test --coverage
+      - name: Configure personal signing if available
+        if: github.event_name != 'pull_request'
+        env:
+          KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: python3 tools/configure_signing.py
+      - name: Build diagnostic APK
+        run: flutter build apk --debug --build-number=${{ github.run_number }}
+      - name: Build signed release APKs
+        if: env.HAS_SIGNING == 'true'
+        run: flutter build apk --release --split-per-abi --build-number=${{ github.run_number }}
+      - uses: actions/upload-artifact@v4.6.2
+        if: always()
+        with:
+          name: diagnostics-and-tests
+          path: |
+            formatter-output.txt
+            coverage/
+          retention-days: 30
+      - uses: actions/upload-artifact@v4.6.2
+        with:
+          name: phase-0-apk
+          path: build/app/outputs/flutter-apk/*.apk
+          if-no-files-found: error
+          retention-days: 30
+      - name: Stage signed APKs
+        if: env.HAS_SIGNING == 'true'
+        run: |
+          mkdir -p signed-apks
+          cp build/app/outputs/flutter-apk/*-release.apk signed-apks/
+      - uses: actions/upload-artifact@v4.6.2
+        if: env.HAS_SIGNING == 'true'
+        with:
+          name: signed-apks
+          path: signed-apks/*.apk
+      - name: Signing status
+        if: env.HAS_SIGNING != 'true'
+        run: echo 'Chưa có khóa ký ổn định. APK debug chỉ để thử; chưa đạt cổng Giai đoạn 0.' >> "$GITHUB_STEP_SUMMARY"
+  nightly:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4.3.0
+        id: signed
+        continue-on-error: true
+        with:
+          name: signed-apks
+          path: signed-apks
+      - name: Publish only signed personal APKs
+        if: steps.signed.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TARGET_SHA: ${{ github.sha }}
+        run: |
+          if ! gh release view nightly >/dev/null 2>&1; then
+            gh release create nightly --target "$TARGET_SHA" --prerelease --title 'Giai đoạn 0 · Thử màn hình xe' --notes 'Bản thử Flutter Surface; chưa có các tính năng dashboard. Xem README để thử khi xe đang đỗ.'
+          fi
+          gh release upload nightly signed-apks/*.apk --clobber
