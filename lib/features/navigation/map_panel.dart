@@ -282,12 +282,14 @@ class _FlatMapPanelState extends State<FlatMapPanel> {
                           width: 54,
                           height: 54,
                           rotate: true,
-                          child: VehicleMarker(
-                            fresh: nav.precise,
-                            headingRadians:
-                                (nav.bearing + camera.camera.rotation) *
-                                math.pi /
-                                180,
+                          child: Builder(
+                            builder: (context) => VehicleMarker(
+                              fresh: nav.precise,
+                              headingRadians:
+                                  (nav.bearing + MapCamera.of(context).rotation) *
+                                  math.pi /
+                                  180,
+                            ),
                           ),
                         ),
                     ],

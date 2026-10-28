@@ -35,6 +35,7 @@ class MainActivity : FlutterActivity() {
         super.onResume()
         val state = (application as DashboardApplication).navigation
         state.phoneVisible = true
+        state.emit()
         (application as DashboardApplication).carLocation.permissionsChanged()
         if (state.running) state.initSpeech()
     }
