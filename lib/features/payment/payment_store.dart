@@ -11,7 +11,10 @@ class PaymentStore extends ChangeNotifier {
     if (connected) {
       subscription = CarBridge.watch().listen((event) {
         final next = event['paymentRevision'] as int? ?? 0;
-        if (revision != next) { revision = next; unawaited(reload()); }
+        if (revision != next) {
+          revision = next;
+          unawaited(reload());
+        }
       });
       unawaited(reload());
       if (phone) recovery = recover();
@@ -32,28 +35,57 @@ class PaymentStore extends ChangeNotifier {
       if (closed) return;
       if (lost.files?.isNotEmpty == true) {
         recovered = lost.files!.first;
-        recoveredRole = await CarBridge.methods.invokeMethod<String>('getPaymentPickRole') ?? 'original';
+        recoveredRole =
+            await CarBridge.methods.invokeMethod<String>(
+              'getPaymentPickRole',
+            ) ??
+            'original';
       }
-    } catch (_) { /* Picker failure never exposes file names or account data in logs. */ }
+    } catch (_) {
+      /* Picker failure never exposes file names or account data in logs. */
+    }
   }
+
   Future<void> reload() async {
     final token = ++generation;
     try {
       final raw = await CarBridge.methods.invokeMethod<String>('getPayment');
-      final value = PaymentConfig.fromJson(jsonDecode(raw!) as Map<String, dynamic>);
+      final value = PaymentConfig.fromJson(
+        jsonDecode(raw!) as Map<String, dynamic>,
+      );
       if (closed || token != generation) return;
-      config = value; ready = true; error = null; notifyListeners();
+      config = value;
+      ready = true;
+      error = null;
+      notifyListeners();
     } catch (_) {
-      if (!closed && token == generation) { error = 'Không đọc được QR; hãy mở lại ứng dụng.'; notifyListeners(); }
+      if (!closed && token == generation) {
+        error = 'Không đọc được QR; hãy mở lại ứng dụng.';
+        notifyListeners();
+      }
     }
   }
-  Future<String> writeImage(Uint8List bytes) async => (await CarBridge.methods.invokeMethod<String>('writePaymentImage', {'bytes': bytes}))!;
+
+  Future<String> writeImage(Uint8List bytes) async => (await CarBridge.methods
+      .invokeMethod<String>('writePaymentImage', {'bytes': bytes}))!;
   Future<void> save(PaymentConfig config) async {
-    await CarBridge.methods.invokeMethod('savePayment', {'json': jsonEncode(config.toJson())});
+    await CarBridge.methods.invokeMethod('savePayment', {
+      'json': jsonEncode(config.toJson()),
+    });
     await reload();
   }
-  Future<void> clear() async { await CarBridge.methods.invokeMethod('clearPayment'); await reload(); }
-  Future<void> setPickRole(String? role) => CarBridge.methods.invokeMethod('setPaymentPickRole', {'role': role});
+
+  Future<void> clear() async {
+    await CarBridge.methods.invokeMethod('clearPayment');
+    await reload();
+  }
+
+  Future<void> setPickRole(String? role) =>
+      CarBridge.methods.invokeMethod('setPaymentPickRole', {'role': role});
   @override
-  void dispose() { closed = true; subscription?.cancel(); super.dispose(); }
+  void dispose() {
+    closed = true;
+    subscription?.cancel();
+    super.dispose();
+  }
 }

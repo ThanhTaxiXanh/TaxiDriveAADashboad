@@ -23,6 +23,6 @@ SQLite lịch không đổi. PaymentStorage native giữ một cấu hình và �
 
 ## Nghiệm thu
 
-Tự động: CRC chuẩn, TLV/round-trip/static/dynamic, số 0 đầu tài khoản, Unicode bỏ dấu, dữ liệu sai, dựng PNG thật rồi ZXing giải mã với/không logo ở payload thường và tối đa; chạm mở cột phải 10 giây, chạm đóng, tắt hàng khi đang mở.
+Tự động: CRC chuẩn, vector tĩnh công khai AE9F đối chiếu độc lập từ [vietnam-qr-pay](https://github.com/xuannghia/vietnam-qr-pay), TLV/round-trip/static/dynamic, số 0 đầu tài khoản, Unicode bỏ dấu, dữ liệu sai, dựng PNG thật rồi ZXing giải mã với/không logo ở payload thường và tối đa; chạm mở cột phải 10 giây, chạm đóng, tắt hàng khi đang mở.
 
 Thủ công trên VF e34: quét app ngân hàng cả ảnh và mã tự tạo, đối chiếu người nhận/tài khoản/tiền/nội dung; quét có logo; thử tắt mạng/mở lại/kết nối lại; kiểm tra lịch/Home. GĐ2 đã được Thanh xác nhận ổn định. GĐ3 chờ Thanh xác nhận trước GĐ4.

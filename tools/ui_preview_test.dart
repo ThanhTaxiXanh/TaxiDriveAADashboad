@@ -22,10 +22,24 @@ void main() {
       ..addFont(rootBundle.load('assets/fonts/NotoSans-Regular.ttf'));
     await loader.load();
     temp = await Directory.systemTemp.createTemp('taxi-qr-preview-');
-    final payload = const VietQr(bin: '970436', account: '0000000000', amount: '10000', note: 'MA THU KHONG CHUYEN TIEN').build();
+    final payload = const VietQr(
+      bin: '970436',
+      account: '0000000000',
+      amount: '10000',
+      note: 'MA THU KHONG CHUYEN TIEN',
+    ).build();
     final path = '${temp.path}/sample.png';
-    await File(path).writeAsBytes(await renderPaymentQr(payload, verify: false));
-    payment = PaymentConfig(mode: 'generated', bankName: 'MẪU THỬ', account: '0000000000', holder: 'KHONG CHUYEN TIEN', payload: payload, renderedPath: path);
+    await File(
+      path,
+    ).writeAsBytes(await renderPaymentQr(payload, verify: false));
+    payment = PaymentConfig(
+      mode: 'generated',
+      bankName: 'MẪU THỬ',
+      account: '0000000000',
+      holder: 'KHONG CHUYEN TIEN',
+      payload: payload,
+      renderedPath: path,
+    );
     events = EventArchive.fromJson(
       jsonDecode(await rootBundle.loadString('assets/events_vn.json')),
     ).events;
@@ -81,11 +95,30 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
-    await tester.pumpWidget(MaterialApp(theme: dashboardTheme(Brightness.dark), home: Scaffold(body: PaymentPanel(key: const ValueKey('qr-preview'), config: payment, expanded: true))));
-    await tester.runAsync(() async { await precacheImage(FileImage(File(payment.renderedPath)), tester.element(find.byType(PaymentPanel))); });
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: dashboardTheme(Brightness.dark),
+        home: Scaffold(
+          body: PaymentPanel(
+            key: const ValueKey('qr-preview'),
+            config: payment,
+            expanded: true,
+          ),
+        ),
+      ),
+    );
+    await tester.runAsync(() async {
+      await precacheImage(
+        FileImage(File(payment.renderedPath)),
+        tester.element(find.byType(PaymentPanel)),
+      );
+    });
     await tester.pump();
     expect(tester.takeException(), isNull);
-    await expectLater(find.byKey(const ValueKey('qr-preview')), matchesGoldenFile('../build/previews/qr-expanded-sample.png'));
+    await expectLater(
+      find.byKey(const ValueKey('qr-preview')),
+      matchesGoldenFile('../build/previews/qr-expanded-sample.png'),
+    );
   });
   for (var page = 0; page < 3; page++) {
     testWidgets('Calendar full page $page', (tester) async {

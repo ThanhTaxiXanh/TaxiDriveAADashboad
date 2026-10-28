@@ -200,17 +200,32 @@ class _DashboardFrameState extends State<DashboardFrame> {
   Timer? paymentTimer;
   void togglePayment() {
     paymentTimer?.cancel();
-    setState(() { expandedPayment = !expandedPayment; expandedCalendar = false; });
-    if (expandedPayment) paymentTimer = Timer(const Duration(seconds: 10), () { if (mounted) setState(() => expandedPayment = false); });
+    setState(() {
+      expandedPayment = !expandedPayment;
+      expandedCalendar = false;
+    });
+    if (expandedPayment)
+      paymentTimer = Timer(const Duration(seconds: 10), () {
+        if (mounted) setState(() => expandedPayment = false);
+      });
   }
+
   @override
   void didUpdateWidget(DashboardFrame oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (!widget.config.rowEnabled[1]) { paymentTimer?.cancel(); expandedPayment = false; }
+    if (!widget.config.rowEnabled[1]) {
+      paymentTimer?.cancel();
+      expandedPayment = false;
+    }
     if (!widget.config.rowEnabled[0]) expandedCalendar = false;
   }
+
   @override
-  void dispose() { paymentTimer?.cancel(); super.dispose(); }
+  void dispose() {
+    paymentTimer?.cancel();
+    super.dispose();
+  }
+
   int calendarPage = 0;
   LayoutConfig get config => widget.config;
   @override
@@ -317,7 +332,16 @@ class _DashboardFrameState extends State<DashboardFrame> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: expandedPayment && config.rowEnabled[1]
-                      ? Card(margin: EdgeInsets.zero, clipBehavior: Clip.antiAlias, child: PaymentPanel(config: widget.payment, expanded: true, fontScale: config.fontScale, onTap: togglePayment))
+                      ? Card(
+                          margin: EdgeInsets.zero,
+                          clipBehavior: Clip.antiAlias,
+                          child: PaymentPanel(
+                            config: widget.payment,
+                            expanded: true,
+                            fontScale: config.fontScale,
+                            onTap: togglePayment,
+                          ),
+                        )
                       : expandedCalendar && config.rowEnabled[0]
                       ? Card(
                           child: CalendarPanel(
@@ -357,7 +381,11 @@ class _DashboardFrameState extends State<DashboardFrame> {
                                             }),
                                           )
                                         : i == 1
-                                        ? PaymentPanel(config: widget.payment, fontScale: config.fontScale, onTap: togglePayment)
+                                        ? PaymentPanel(
+                                            config: widget.payment,
+                                            fontScale: config.fontScale,
+                                            onTap: togglePayment,
+                                          )
                                         : LayoutBuilder(
                                             builder: (context, cell) => Padding(
                                               padding: const EdgeInsets.all(12),

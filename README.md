@@ -34,4 +34,4 @@ CI kiểm tra CRC 29B1, cấu trúc TLV, từ chối payload sai, tạo ảnh QR
 
 Giữ nguyên ciphertext android/signing/personal.jks.gpg và Secret ANDROID_SIGNING_PASSWORD; không khởi tạo lại khóa. Android Auto: chế độ nhà phát triển, Nguồn không xác định và Taxi Xanh trong Tùy chỉnh trình khởi chạy như GĐ0.
 
-Mã tự viết, không nhúng mã GPL Fermata. Noto Sans theo SIL OFL 1.1. qr_flutter và zxing2 theo BSD-3-Clause; image theo MIT; image_picker theo Apache-2.0, thông báo giấy phép được Flutter đóng gói.
+Mã tự viết, không nhúng mã GPL Fermata. Noto Sans theo SIL OFL 1.1. qr_flutter và zxing2 theo BSD-3-Clause; image theo MIT; image_picker theo BSD-3-Clause (kèm thành phần aFileChooser Apache-2.0), thông báo giấy phép được Flutter đóng gói.

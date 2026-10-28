@@ -68,7 +68,11 @@ class _DashboardAppState extends State<DashboardApp> {
                 calendar: calendar,
                 payment: payment,
               )
-            : DiagnosticsScreen(controller: controller, calendar: calendar, payment: payment),
+            : DiagnosticsScreen(
+                controller: controller,
+                calendar: calendar,
+                payment: payment,
+              ),
       );
     },
   );
@@ -149,8 +153,15 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
             ListenableBuilder(
               listenable: widget.payment,
               builder: (context, _) => FilledButton.icon(
-                onPressed: widget.payment.ready ? () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => PaymentScreen(store: widget.payment))) : null,
-                icon: const Icon(Icons.qr_code_2), label: const Text('QR thanh toán'),
+                onPressed: widget.payment.ready
+                    ? () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => PaymentScreen(store: widget.payment),
+                        ),
+                      )
+                    : null,
+                icon: const Icon(Icons.qr_code_2),
+                label: const Text('QR thanh toán'),
               ),
             ),
             OutlinedButton(
