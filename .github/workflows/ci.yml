@@ -5,7 +5,7 @@ on:
   pull_request:
   workflow_dispatch:
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.event.pull_request.head.ref || github.ref_name }}
   cancel-in-progress: true
 permissions:
   contents: read
@@ -24,6 +24,7 @@ jobs:
           channel: stable
           flutter-version: '3.47.1'
           cache: true
+      - run: python3 tools/test_signing.py
       - run: bash tools/bootstrap_android.sh
       - run: flutter pub get
       - name: Check formatting
@@ -37,6 +38,7 @@ jobs:
       - name: Configure personal signing if available
         if: github.event_name != 'pull_request'
         env:
+          ANDROID_SIGNING_PASSWORD: ${{ secrets.ANDROID_SIGNING_PASSWORD }}
           KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
           KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
@@ -75,7 +77,7 @@ jobs:
         if: env.HAS_SIGNING != 'true'
         run: echo 'Chưa có khóa ký ổn định. APK debug chỉ để thử; chưa đạt cổng Giai đoạn 0.' >> "$GITHUB_STEP_SUMMARY"
   nightly:
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     needs: build
     runs-on: ubuntu-latest
     permissions:

@@ -60,7 +60,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     subscription?.cancel();
     animation?.cancel();
     reporting?.cancel();
-    WidgetsBinding.instance.removeTimingsCallback(timings);
+    if (animation != null) {
+      WidgetsBinding.instance.removeTimingsCallback(timings);
+    }
     super.dispose();
   }
 

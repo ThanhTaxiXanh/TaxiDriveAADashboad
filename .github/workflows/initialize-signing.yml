@@ -1,0 +1,33 @@
+name: Initialize personal signing
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: personal-signing-bootstrap
+  cancel-in-progress: false
+jobs:
+  initialize:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.2.2
+        with:
+          ref: main
+      - uses: actions/setup-java@v4.7.1
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Create encrypted stable signing identity once
+        env:
+          ANDROID_SIGNING_PASSWORD: ${{ secrets.ANDROID_SIGNING_PASSWORD }}
+        run: python3 tools/initialize_signing.py
+      - name: Store only encrypted keystore
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add android/signing/personal.jks.gpg
+          git commit -m 'build: initialize encrypted personal signing identity'
+          git push origin HEAD:main
+      - name: Next step
+        run: echo 'Khóa mã hóa đã lưu. Chạy CI thủ công trên main để tạo APK ký ổn định; sao lưu file mã hóa và mật khẩu riêng.' >> "$GITHUB_STEP_SUMMARY"

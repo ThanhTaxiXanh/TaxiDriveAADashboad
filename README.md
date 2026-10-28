@@ -36,14 +36,21 @@ Chưa qua cổng GĐ0 cho đến khi anh xác nhận trên xe và có bản ký 
 
 ## Khóa ký ổn định
 
-Kết nối GitHub hiện có không cung cấp API ghi Secrets. Cần bốn repository secrets tại **Settings → Secrets and variables → Actions**:
+Cách làm hoàn toàn bằng điện thoại sau khi PR được gộp:
+
+1. Vào **Settings → Secrets and variables → Actions → New repository secret**. Tên `ANDROID_SIGNING_PASSWORD`, giá trị mật khẩu ngẫu nhiên ít nhất 20 ký tự, giữ bí mật và sao lưu riêng.
+2. Vào **Actions → Initialize personal signing → Run workflow → main**. Workflow tạo khóa đúng một lần, chỉ commit bản mã hóa GPG AES256 vào `android/signing/personal.jks.gpg`; khóa thô không rời runner. Không chạy lại để thay khóa.
+3. Vào **Actions → CI → Run workflow → main**. APK release được giải mã/ký bằng secret trên runner, sau đó lên Releases/nightly khi CI xanh.
+4. Sao lưu cả tệp mã hóa và mật khẩu; không đổi mật khẩu secret tùy tiện vì sẽ không giải mã được khóa cũ. Repo công khai chỉ chứa ciphertext; độ an toàn phụ thuộc mật khẩu ngẫu nhiên đủ mạnh. Không tải khóa giải mã vào repo.
+
+Kết nối GitHub hiện có không cung cấp API ghi Secrets, nên anh cần tự nhập secret qua trang Settings. Nếu đã có keystore từ trước, dùng bốn secrets này thay cho cách khởi tạo ở trên:
 
 - `ANDROID_KEYSTORE_BASE64`
 - `ANDROID_KEY_ALIAS`
 - `ANDROID_KEY_PASSWORD`
 - `ANDROID_STORE_PASSWORD`
 
-Không dán khóa vào chat, issue, log hay mã nguồn. Chưa có secrets thì CI chỉ tạo APK thử. Workflow dừng nếu chỉ có một phần secrets; không âm thầm tạo khóa khác. Sao lưu khóa ở nơi riêng tư; mất khóa sẽ không cập nhật đè được. Không có bước yêu cầu Android Studio hoặc máy tính cá nhân. Việc tạo và nạp khóa qua cơ chế an toàn cần hoàn tất trước phát hành ổn định.
+Không dán khóa vào chat, issue, log hay mã nguồn. Chưa có secrets thì CI chỉ tạo APK thử. Workflow dừng nếu chỉ có một phần secrets; không âm thầm tạo khóa khác. Sao lưu khóa ở nơi riêng tư; mất khóa sẽ không cập nhật đè được. Không có bước yêu cầu Android Studio hoặc máy tính cá nhân. Workflow khởi tạo một lần giúp tạo khóa ngay trên GitHub Actions, không cần máy tính.
 
 ## Build và kiểm tra
 
