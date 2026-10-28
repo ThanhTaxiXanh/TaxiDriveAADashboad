@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -158,76 +159,70 @@ void main() {
       }
     },
   );
-  test(
-    'Both engines share a native route lease; stale GPS makes no network call',
-    () async {
-      var claims = 0, requests = 0, published = 0;
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(NavController.methods, (call) async {
-            if (call.method == 'claimRoute')
-              return claims++ == 0 ? 'lease' : null;
-            if (call.method == 'setRoute') {
-              published++;
-              return null;
-            }
+  test('Both engines share a native route lease; stale GPS makes no network call', () async {
+    var claims = 0, requests = 0, published = 0;
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(NavController.methods, (call) async {
+          if (call.method == 'claimRoute')
+            return claims++ == 0 ? 'lease' : null;
+          if (call.method == 'setRoute') {
+            published++;
             return null;
-          });
-      final client = MockClient((request) async {
-        requests++;
-        return http.Response(
-          jsonEncode(osrmFixture()),
-          200,
-          headers: {'content-type': 'application/json; charset=utf-8'},
-        );
-      });
-      final one = NavController(connected: false, client: client),
-          two = NavController(connected: false, client: client);
-      // Valhalla parser intentionally rejects OSRM shape; fallback uses the same
-      // mock client. There must be only one engine's request pair.
-      for (final c in [one, two]) {
-        c.goal = const Place('Điểm thử', LatLng(21.282, 106.196));
-        c.fix = NavFix.fromJson({
-          'lat': 21.281,
-          'lon': 106.194,
-          'accuracy': 5,
-          'speed': 0,
-          'bearing': 0,
-          'time': DateTime.now().millisecondsSinceEpoch,
+          }
+          return null;
         });
-      }
-      await Future.wait([one.calculate(), two.calculate()]);
-      expect(requests, 2);
-      expect(published, 1);
-      one.fix = NavFix.fromJson({
+    final client = MockClient((request) async {
+      requests++;
+      return http.Response(
+        jsonEncode(osrmFixture()),
+        200,
+        headers: {'content-type': 'application/json; charset=utf-8'},
+      );
+    });
+    final one = NavController(connected: false, client: client),
+        two = NavController(connected: false, client: client);
+    // Valhalla parser intentionally rejects OSRM shape; fallback uses the same
+    // mock client. There must be only one engine's request pair.
+    for (final c in [one, two]) {
+      c.goal = const Place('Điểm thử', LatLng(21.282, 106.196));
+      c.fix = NavFix.fromJson({
         'lat': 21.281,
         'lon': 106.194,
         'accuracy': 5,
         'speed': 0,
         'bearing': 0,
-        'time': DateTime.now()
-            .subtract(const Duration(seconds: 30))
-            .millisecondsSinceEpoch,
+        'time': DateTime.now().millisecondsSinceEpoch,
       });
-      await one.calculate();
-      expect(requests, 2);
-      one.dispose();
-      two.dispose();
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(NavController.methods, null);
-    },
-  );
-  test(
-    'Manual coordinates avoid geocoding network and preserve account-free place data',
-    () async {
-      final nav = NavController(
-        connected: false,
-        client: MockClient(
-          (_) async => throw StateError('Must not request network'),
-        ),
-      );
-      final result = await nav.search('21.281,106.194');
-      expect(result.single.point, points.first);
-      nav.dispose();
-    },
-  );
+    }
+    await Future.wait([one.calculate(), two.calculate()]);
+    expect(requests, 2);
+    expect(published, 1);
+    one.fix = NavFix.fromJson({
+      'lat': 21.281,
+      'lon': 106.194,
+      'accuracy': 5,
+      'speed': 0,
+      'bearing': 0,
+      'time': DateTime.now()
+          .subtract(const Duration(seconds: 30))
+          .millisecondsSinceEpoch,
+    });
+    await one.calculate();
+    expect(requests, 2);
+    one.dispose();
+    two.dispose();
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(NavController.methods, null);
+  });
+  test('Manual coordinates avoid geocoding network and preserve account-free place data', () async {
+    final nav = NavController(
+      connected: false,
+      client: MockClient(
+        (_) async => throw StateError('Must not request network'),
+      ),
+    );
+    final result = await nav.search('21.281,106.194');
+    expect(result.single.point, points.first);
+    nav.dispose();
+  });
 }

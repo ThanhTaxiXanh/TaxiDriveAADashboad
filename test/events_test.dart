@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:taxi_driver_aa_dashboard/features/calendar/event_item.dart';
 import 'package:taxi_driver_aa_dashboard/features/calendar/lunar_calendar.dart';
@@ -93,9 +94,9 @@ void main() {
   test(
     'Seed archive, visibility, monthly toggles, sorting and backup round trip',
     () {
-      final json =
-          jsonDecode(File('assets/events_vn.json').readAsStringSync())
-              as Map<String, dynamic>;
+      final json = jsonDecode(
+        File('assets/events_vn.json').readAsStringSync(),
+      ) as Map<String, dynamic>;
       final archive = EventArchive.fromJson(json);
       expect(archive.events.length, 52);
       expect(archive.events.where((e) => e.monthly).length, 24);

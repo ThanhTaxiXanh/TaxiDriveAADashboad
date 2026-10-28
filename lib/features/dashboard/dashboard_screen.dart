@@ -1,8 +1,11 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui';
+
 import '../../core/car_bridge.dart';
+
 import 'package:flutter/material.dart';
+
 import '../../core/dashboard_controller.dart';
 import '../../core/layout_config.dart';
 import '../../modules/dashboard_module.dart';
@@ -425,9 +428,9 @@ class _DashboardFrameState extends State<DashboardFrame> {
                                                     Icon(
                                                       icons[i],
                                                       size: 40,
-                                                      color: Theme.of(
-                                                        context,
-                                                      ).colorScheme.primary,
+                                                      color: Theme.of(context)
+                                                          .colorScheme
+                                                          .primary,
                                                     ),
                                                   Text(
                                                     titles[i],
