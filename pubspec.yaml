@@ -1,0 +1,14 @@
+name: taxi_driver_aa_dashboard
+description: Thử nghiệm Flutter trực tiếp trên bề mặt Android Auto.
+publish_to: none
+version: 0.0.1+1
+environment:
+  sdk: '>=3.9.0 <4.0.0'
+dependencies:
+  flutter:
+    sdk: flutter
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+flutter:
+  uses-material-design: true
