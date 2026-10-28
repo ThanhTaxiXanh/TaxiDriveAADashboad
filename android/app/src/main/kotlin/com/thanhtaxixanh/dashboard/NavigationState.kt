@@ -27,6 +27,8 @@ class NavigationState(private val context: Context) {
     private val routeFile = File(context.filesDir, "navigation-route.json")
     private val listeners = mutableSetOf<EventChannel.EventSink>()
     private val handler = Handler(Looper.getMainLooper())
+    var carConnected = false
+    var phoneVisible = false
     var running = false
     var active = false
     var fix: Location? = null
@@ -48,7 +50,8 @@ class NavigationState(private val context: Context) {
     private val attributes = AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_ASSISTANCE_NAVIGATION_GUIDANCE).setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build()
     private val focus = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK).setAudioAttributes(attributes).setOnAudioFocusChangeListener { change -> if (change == AudioManager.AUDIOFOCUS_LOSS) tts?.stop() }.build()
     fun snapshot(): String {
-        val data = JSONObject().put("running", running).put("active", active).put("status", status)
+        val background = android.os.Build.VERSION.SDK_INT < 29 || androidx.core.content.ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_BACKGROUND_LOCATION) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        val data = JSONObject().put("carConnected", carConnected).put("backgroundLocation", background).put("running", running).put("active", active).put("status", status)
             .put("goal", goal ?: JSONObject.NULL).put("places", places).put("settings", settings)
             .put("routeRevision", routeRevision).put("goalRevision", goalRevision)
             .put("voiceReady", voiceReady).put("gesture", gesture).put("scale", scale)
@@ -131,6 +134,18 @@ class NavigationState(private val context: Context) {
         }
         emit()
     }
+    fun style(mode: String): String? {
+        require(mode in listOf("light", "dark"))
+        val file = File(context.filesDir, "map-base-$mode.json")
+        return if (file.exists()) file.readText() else null
+    }
+    fun style(mode: String, raw: String) {
+        require(mode in listOf("light", "dark") && raw.length < 2 * 1024 * 1024)
+        val json = JSONObject(raw)
+        require(json.getInt("version") == 8 && json.getJSONArray("layers").length() > 0)
+        val temp = File(context.filesDir, "map-base-$mode.tmp")
+        temp.writeText(raw); check(temp.renameTo(File(context.filesDir, "map-base-$mode.json")))
+    }
     fun searchCache(): String = prefs.getString("searchCache", "{}") ?: "{}"
     fun searchCache(raw: String) {
         require(raw.length <= 1024 * 1024 && JSONObject(raw).length() <= 64)
@@ -146,7 +161,7 @@ class NavigationState(private val context: Context) {
             require(value.length <= 300 && uri.scheme == "https" && !uri.host.isNullOrBlank() && uri.userInfo == null && uri.query == null && uri.fragment == null)
             clean.put(name, value)
         }
-        clean.put("voice", input.optBoolean("voice", true)).put("headingUp", input.optBoolean("headingUp", true))
+        clean.put("voice", input.optBoolean("voice", true)).put("headingUp", input.optBoolean("headingUp", true)).put("map3d", input.optBoolean("map3d", true))
         settings = clean; prefs.edit().putString("settings", settings.toString()).apply()
         if (!settings.optBoolean("voice", true)) { tts?.stop(); audio.abandonAudioFocusRequest(focus) }
         emit()
@@ -189,6 +204,8 @@ class NavigationBridge(engine: FlutterEngine, private val state: NavigationState
         methods.setMethodCallHandler { call, result ->
             try {
                 when (call.method) {
+                    "getMapStyle" -> result.success(state.style(call.argument<String>("mode")!!))
+                    "saveMapStyle" -> { state.style(call.argument<String>("mode")!!, call.argument<String>("json")!!); result.success(null) }
                     "getSearchCache" -> { require(phone); result.success(state.searchCache()) }
                     "saveSearchCache" -> { require(phone); state.searchCache(call.argument<String>("json")!!); result.success(null) }
                     "snapshot" -> result.success(state.snapshot())
@@ -196,7 +213,8 @@ class NavigationBridge(engine: FlutterEngine, private val state: NavigationState
                     "destination" -> { state.destination(state.place(call.argument<String>("place")!!)); result.success(null) }
                     "stop" -> { state.stop(); result.success(null) }
                     "arrived" -> { state.stop(true); result.success(null) }
-                    "stopLocation" -> { context.stopService(Intent(context, NavigationLocationService::class.java)); result.success(null) }
+                    "requestLocation" -> { (context.applicationContext as DashboardApplication).carLocation.userStart(); result.success(null) }
+                    "stopLocation" -> { (context.applicationContext as DashboardApplication).carLocation.suppress(); context.stopService(Intent(context, NavigationLocationService::class.java)); result.success(null) }
                     "claimRoute" -> result.success(state.claim(call.argument<Number>("revision")!!.toLong()))
                     "setRoute", "routeFailure" -> { state.route(if (call.method == "setRoute") call.argument<String>("route")!! else null, call.argument<String>("lease")!!, call.argument<Number>("revision")!!.toLong()); result.success(null) }
                     "speak" -> { state.speak(call.argument<String>("text")!!, call.argument<String>("id")!!, call.argument<Number>("revision")!!.toLong()); result.success(null) }

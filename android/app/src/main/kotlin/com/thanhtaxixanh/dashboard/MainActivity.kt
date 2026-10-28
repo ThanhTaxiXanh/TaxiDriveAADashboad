@@ -34,7 +34,13 @@ class MainActivity : FlutterActivity() {
     override fun onResume() {
         super.onResume()
         val state = (application as DashboardApplication).navigation
+        state.phoneVisible = true
+        (application as DashboardApplication).carLocation.permissionsChanged()
         if (state.running) state.initSpeech()
+    }
+    override fun onPause() {
+        (application as DashboardApplication).navigation.phoneVisible = false
+        super.onPause()
     }
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (calendarFiles?.activityResult(requestCode, resultCode, data) != true) super.onActivityResult(requestCode, resultCode, data)

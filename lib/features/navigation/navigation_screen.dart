@@ -98,6 +98,10 @@ class _NavigationScreenState extends State<NavigationScreen> {
                 ? 'Vị trí đang bật · ${nav.precise ? 'GPS chính xác' : 'đang chờ GPS chính xác'}'
                 : nav.status,
           ),
+          Text(nav.carConnected ? 'Android Auto đang kết nối' : 'Android Auto chưa kết nối'),
+          const Text('Vị trí sẽ tự tắt khi Android Auto ngắt kết nối. Luôn luôn giúp tự bật lại GPS khi kết nối xe lúc điện thoại ở nền.'),
+          TextButton.icon(onPressed: () => showBackgroundPermission(), icon: const Icon(Icons.location_on), label: Text(nav.backgroundLocation ? 'Vị trí nền đã được cho phép' : 'Cho phép vị trí Luôn luôn')),
+          SwitchListTile(title: const Text('Bản đồ 3D · nghiêng 60°'), subtitle: const Text('Tắt để dùng bản đồ 2D dự phòng'), value: nav.settings['map3d'] != false, onChanged: busy ? null : (v) => action(() => nav.saveSettings({..._settings(nav), 'map3d': v}))),
           Text(
             nav.voiceReady
                 ? 'Giọng Việt ngoại tuyến sẵn sàng'
@@ -197,6 +201,10 @@ class _NavigationScreenState extends State<NavigationScreen> {
       ),
     ),
   );
+  Future<void> showBackgroundPermission() async {
+    final open = await showDialog<bool>(context: context, builder: (context) => AlertDialog(title: const Text('Vị trí Luôn luôn'), content: const Text('Cho phép tự bật GPS khi kết nối Android Auto mà điện thoại đang ở nền. Khi ngắt Android Auto, ứng dụng dừng GPS. Trên Android 11 trở lên: mở Quyền ứng dụng → Vị trí → Luôn cho phép, đồng thời bật Vị trí chính xác. Bạn vẫn có thể dùng nút Bật vị trí nếu không cấp quyền này.'), actions: [TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Để sau')), FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Mở cài đặt'))]));
+    if (open == true && mounted) await action(() => NavController.location.invokeMethod('background'));
+  }
   Future<void> search() => action(() async {
     final found = await nav.search(query.text);
     if (mounted)
@@ -255,6 +263,7 @@ Map<String, dynamic> _settings(NavController n) => {
   'photon': n.endpoint('photon'),
   'voice': n.settings['voice'] != false,
   'headingUp': n.settings['headingUp'] != false,
+  'map3d': n.settings['map3d'] != false,
 };
 
 class _ServerSettings extends StatefulWidget {

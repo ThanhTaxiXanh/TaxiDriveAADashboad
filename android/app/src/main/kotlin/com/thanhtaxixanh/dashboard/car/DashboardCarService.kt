@@ -38,6 +38,7 @@ private class SpikeScreen(context: CarContext) : Screen(context), SurfaceCallbac
     private val renderer = SurfaceRenderer(context)
     init {
         (context.applicationContext as DashboardApplication).diagnostics.update("carApi" to context.carAppApiLevel, "carDark" to context.isDarkMode, "panel" to "dashboard")
+        (context.applicationContext as DashboardApplication).carLocation.sessionVisible()
         context.getCarService(AppManager::class.java).setSurfaceCallback(this)
         lifecycle.addObserver(object : DefaultLifecycleObserver {
             override fun onDestroy(owner: LifecycleOwner) {
