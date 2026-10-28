@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'car_main.dart';
 import 'core/car_bridge.dart';
+import 'features/payment/payment_store.dart';
+import 'features/payment/payment_screen.dart';
 import 'core/dashboard_theme.dart';
 import 'features/calendar/calendar_store.dart';
 import 'features/calendar/event_screen.dart';
@@ -29,10 +31,12 @@ class DashboardApp extends StatefulWidget {
 class _DashboardAppState extends State<DashboardApp> {
   final controller = DashboardController();
   final calendar = CalendarStore();
+  late final payment = PaymentStore(phone: !widget.car);
   @override
   void dispose() {
     controller.dispose();
     calendar.dispose();
+    payment.dispose();
     super.dispose();
   }
 
@@ -62,8 +66,9 @@ class _DashboardAppState extends State<DashboardApp> {
                 controller: controller,
                 car: true,
                 calendar: calendar,
+                payment: payment,
               )
-            : DiagnosticsScreen(controller: controller, calendar: calendar),
+            : DiagnosticsScreen(controller: controller, calendar: calendar, payment: payment),
       );
     },
   );
@@ -74,9 +79,11 @@ class DiagnosticsScreen extends StatefulWidget {
     super.key,
     required this.controller,
     required this.calendar,
+    required this.payment,
   });
   final DashboardController controller;
   final CalendarStore calendar;
+  final PaymentStore payment;
   @override
   State<DiagnosticsScreen> createState() => _DiagnosticsScreenState();
 }
@@ -97,7 +104,7 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
           padding: const EdgeInsets.all(20),
           children: [
             const Text(
-              'Giai đoạn 2 · Lịch Âm/Dương và sự kiện',
+              'Giai đoạn 3 · QR thanh toán',
               style: TextStyle(fontSize: 22),
             ),
             const SizedBox(height: 16),
@@ -139,12 +146,20 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
               ),
               child: const Text('Lịch và sự kiện'),
             ),
+            ListenableBuilder(
+              listenable: widget.payment,
+              builder: (context, _) => FilledButton.icon(
+                onPressed: widget.payment.ready ? () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => PaymentScreen(store: widget.payment))) : null,
+                icon: const Icon(Icons.qr_code_2), label: const Text('QR thanh toán'),
+              ),
+            ),
             OutlinedButton(
               onPressed: () => Navigator.of(context).push(
                 MaterialPageRoute<void>(
                   builder: (_) => DashboardScreen(
                     controller: widget.controller,
                     calendar: widget.calendar,
+                    payment: widget.payment,
                   ),
                 ),
               ),
@@ -175,8 +190,8 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
             ),
             const SizedBox(height: 16),
             const Text(
-              'Đã có lịch Âm/Dương và sự kiện. Bản đồ dẫn đường, QR thanh toán và media đang giữ chỗ. '
-              'Bố cục Giai đoạn 1 đã được Thanh xác nhận chạy mượt trên VF e34.',
+              'Đã có lịch, sự kiện và QR thanh toán. Bản đồ dẫn đường và media đang giữ chỗ. '
+              'Thanh đã nghiệm thu Giai đoạn 2 ổn định trên VF e34.',
             ),
           ],
         );

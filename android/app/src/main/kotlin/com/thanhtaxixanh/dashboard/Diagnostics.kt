@@ -10,13 +10,14 @@ import org.json.JSONArray
 
 // Main-thread only. Fixed, technical fields: never accepts free-form Dart logs.
 class Diagnostics(context: Context) {
+    val payment by lazy { PaymentStorage(context.applicationContext) }
     val calendar by lazy { EventDatabase(context.applicationContext) }
     private val prefs = context.getSharedPreferences("dashboard", Context.MODE_PRIVATE)
     private val file = File(context.filesDir, "diagnostics.txt")
     private val listeners = mutableSetOf<EventChannel.EventSink>()
     val values = mutableMapOf<String, Any>(
         "surface" to false, "firstFrame" to false, "touches" to 0, "fps" to 0.0,
-        "layout" to (prefs.getString("layout", "{}") ?: "{}"), "panel" to "dashboard", "calendarRevision" to 0L
+        "layout" to (prefs.getString("layout", "{}") ?: "{}"), "panel" to "dashboard", "calendarRevision" to 0L, "paymentRevision" to 0L
     )
     fun update(vararg entries: Pair<String, Any>) {
         values.putAll(entries)
@@ -47,7 +48,7 @@ class Diagnostics(context: Context) {
     fun calendarChanged() { update("calendarRevision" to ((values["calendarRevision"] as Long) + 1), "calendarError" to "Không") }
     fun add(sink: EventChannel.EventSink) { listeners.add(sink); sink.success(HashMap(values)) }
     fun remove(sink: EventChannel.EventSink?) { listeners.remove(sink) }
-    fun export(): String = "Taxi Xanh / phase 2\n$values\n" + if (file.exists()) file.readText() else ""
+    fun export(): String = "Taxi Xanh / phase 3\n$values\n" + if (file.exists()) file.readText() else ""
 }
 
 class DashboardBridge(engine: FlutterEngine, private val state: Diagnostics, share: (() -> Unit)? = null) {
@@ -57,6 +58,26 @@ class DashboardBridge(engine: FlutterEngine, private val state: Diagnostics, sha
     init {
         methods.setMethodCallHandler { call, result ->
             when (call.method) {
+                "getPayment" -> {
+                    try { result.success(state.payment.read()) }
+                    catch (e: Exception) { result.error("PAYMENT_READ", "Không đọc được QR", null) }
+                }
+                "getPaymentPickRole" -> result.success(state.payment.pendingRole())
+                "savePayment", "writePaymentImage", "clearPayment", "setPaymentPickRole" -> {
+                    if (share == null) result.error("PHONE_ONLY", "Chỉ cấu hình QR trên điện thoại", null)
+                    else try {
+                        when (call.method) {
+                            "writePaymentImage" -> result.success(state.payment.writeImage(call.argument<ByteArray>("bytes") ?: error("Missing image")))
+                            "setPaymentPickRole" -> { state.payment.pendingRole(call.argument<String>("role")); result.success(null) }
+                            else -> {
+                                if (call.method == "clearPayment") state.payment.clear()
+                                else state.payment.save(call.argument<String>("json") ?: error("Missing config"))
+                                state.update("paymentRevision" to ((state.values["paymentRevision"] as Long) + 1))
+                                result.success(null)
+                            }
+                        }
+                    } catch (e: Exception) { result.error("PAYMENT_WRITE", "Không lưu được QR hoặc ảnh không hợp lệ", null) }
+                }
                 "getCalendar" -> {
                     try { result.success(state.calendar.archive()) }
                     catch (e: Exception) { state.update("calendarError" to e.javaClass.simpleName); result.error("CALENDAR_READ", "Không đọc được lịch", null) }

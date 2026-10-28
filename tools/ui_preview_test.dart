@@ -1,4 +1,9 @@
 import 'dart:convert';
+import 'dart:io';
+import 'package:taxi_driver_aa_dashboard/features/payment/payment_config.dart';
+import 'package:taxi_driver_aa_dashboard/features/payment/payment_panel.dart';
+import 'package:taxi_driver_aa_dashboard/features/payment/qr_codec.dart';
+import 'package:taxi_driver_aa_dashboard/features/payment/vietqr.dart';
 import 'package:flutter/material.dart';
 import 'package:taxi_driver_aa_dashboard/features/calendar/calendar_panel.dart';
 import 'package:taxi_driver_aa_dashboard/features/calendar/event_item.dart';
@@ -10,14 +15,22 @@ import 'package:taxi_driver_aa_dashboard/features/dashboard/dashboard_screen.dar
 
 void main() {
   late List<EventItem> events;
+  late Directory temp;
+  late PaymentConfig payment;
   setUpAll(() async {
     final loader = FontLoader('NotoSans')
       ..addFont(rootBundle.load('assets/fonts/NotoSans-Regular.ttf'));
     await loader.load();
+    temp = await Directory.systemTemp.createTemp('taxi-qr-preview-');
+    final payload = const VietQr(bin: '970436', account: '0000000000', amount: '10000', note: 'MA THU KHONG CHUYEN TIEN').build();
+    final path = '${temp.path}/sample.png';
+    await File(path).writeAsBytes(await renderPaymentQr(payload, verify: false));
+    payment = PaymentConfig(mode: 'generated', bankName: 'MẪU THỬ', account: '0000000000', holder: 'KHONG CHUYEN TIEN', payload: payload, renderedPath: path);
     events = EventArchive.fromJson(
       jsonDecode(await rootBundle.loadString('assets/events_vn.json')),
     ).events;
   });
+  tearDownAll(() async => temp.delete(recursive: true));
   for (final size in [
     const Size(1280, 720),
     const Size(1920, 720),
@@ -47,6 +60,7 @@ void main() {
                 config: config,
                 today: DateTime.utc(2026, 10, 28),
                 events: events,
+                payment: payment,
               ),
             ),
           ),
@@ -62,6 +76,17 @@ void main() {
       });
     }
   }
+  testWidgets('Expanded QR sample', (tester) async {
+    tester.view.physicalSize = const Size(400, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(MaterialApp(theme: dashboardTheme(Brightness.dark), home: Scaffold(body: PaymentPanel(key: const ValueKey('qr-preview'), config: payment, expanded: true))));
+    await tester.runAsync(() async { await precacheImage(FileImage(File(payment.renderedPath)), tester.element(find.byType(PaymentPanel))); });
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+    await expectLater(find.byKey(const ValueKey('qr-preview')), matchesGoldenFile('../build/previews/qr-expanded-sample.png'));
+  });
   for (var page = 0; page < 3; page++) {
     testWidgets('Calendar full page $page', (tester) async {
       tester.view.physicalSize = const Size(400, 800);
