@@ -25,6 +25,17 @@ void main() {
       jsonDecode(await rootBundle.loadString('assets/events_vn.json')),
     ).events;
   });
+  Future<void> preload(WidgetTester tester) async {
+    // Load FileImage in the real async zone before any widget creates a
+    // pending ImageCache entry in the fake test clock's zone.
+    await tester.pumpWidget(const MaterialApp(home: Scaffold()));
+    await tester.runAsync(() async {
+      await precacheImage(
+        FileImage(File(payment.renderedPath)),
+        tester.element(find.byType(Scaffold)),
+      );
+    });
+  }
   tearDownAll(() async => temp.delete(recursive: true));
   testWidgets('Prepare offline QR sample', (tester) async {
     await tester.runAsync(() async {
@@ -69,6 +80,7 @@ void main() {
                 leftFraction: .75,
                 rowWeights: [.1, 10, .1],
               );
+        await preload(tester);
         await tester.pumpWidget(
           MaterialApp(
             theme: dashboardTheme(Brightness.dark),
@@ -83,12 +95,6 @@ void main() {
             ),
           ),
         );
-        await tester.runAsync(() async {
-          await precacheImage(
-            FileImage(File(payment.renderedPath)),
-            tester.element(find.byType(DashboardFrame)),
-          );
-        });
         await tester.pump();
         expect(tester.takeException(), isNull);
         await expectLater(
@@ -101,6 +107,7 @@ void main() {
     }
   }
   testWidgets('Expanded QR sample', (tester) async {
+    await preload(tester);
     tester.view.physicalSize = const Size(400, 800);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
@@ -117,12 +124,6 @@ void main() {
         ),
       ),
     );
-    await tester.runAsync(() async {
-      await precacheImage(
-        FileImage(File(payment.renderedPath)),
-        tester.element(find.byType(PaymentPanel)),
-      );
-    });
     await tester.pump();
     expect(tester.takeException(), isNull);
     await expectLater(
