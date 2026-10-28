@@ -36,6 +36,7 @@ void main() {
       );
     });
   }
+
   tearDownAll(() async => temp.delete(recursive: true));
   testWidgets('Prepare offline QR sample', (tester) async {
     await tester.runAsync(() async {
