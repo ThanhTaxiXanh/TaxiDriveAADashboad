@@ -56,15 +56,32 @@ void main() {
       ).writeAsBytes(await renderPaymentQr(payload, verify: false));
       final recorder = ui.PictureRecorder();
       final canvas = Canvas(recorder);
-      canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(0, 10, 1200, 200), const Radius.circular(30)), Paint()..color = const Color(0xff006b55));
-      final painter = TextPainter(text: const TextSpan(text: 'TAXI XANH · LOGO MẪU', style: TextStyle(fontFamily: 'NotoSans', fontSize: 64, color: Colors.white)), textDirection: TextDirection.ltr)..layout();
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          const Rect.fromLTWH(0, 10, 1200, 200),
+          const Radius.circular(30),
+        ),
+        Paint()..color = const Color(0xff006b55),
+      );
+      final painter = TextPainter(
+        text: const TextSpan(
+          text: 'TAXI XANH · LOGO MẪU',
+          style: TextStyle(
+            fontFamily: 'NotoSans',
+            fontSize: 64,
+            color: Colors.white,
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
       painter.paint(canvas, const Offset(130, 60));
       final picture = recorder.endRecording();
       final logo = await picture.toImage(1200, 240);
       final data = (await logo.toByteData(format: ui.ImageByteFormat.png))!;
       final logoPath = '${temp.path}/brand.png';
       await File(logoPath).writeAsBytes(data.buffer.asUint8List());
-      logo.dispose(); picture.dispose();
+      logo.dispose();
+      picture.dispose();
       payment = PaymentConfig(
         mode: 'generated',
         bankName: 'MẪU THỬ',

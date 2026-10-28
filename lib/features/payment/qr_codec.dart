@@ -14,7 +14,11 @@ String? decodeQrBytes(Uint8List bytes) {
     if (image == null) return null;
     // ZXing ignores alpha. Composite onto white before luminance conversion,
     // otherwise transparent black pixels become a black background.
-    final opaque = img.Image(width: image.width, height: image.height, numChannels: 3);
+    final opaque = img.Image(
+      width: image.width,
+      height: image.height,
+      numChannels: 3,
+    );
     img.fill(opaque, color: img.ColorRgb8(255, 255, 255));
     img.compositeImage(opaque, image);
     final rgba = opaque
