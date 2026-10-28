@@ -1,6 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' as ui;
+import 'package:latlong2/latlong.dart';
+import 'package:taxi_driver_aa_dashboard/features/navigation/map_panel.dart';
+import 'package:taxi_driver_aa_dashboard/features/navigation/nav_controller.dart';
+import 'package:taxi_driver_aa_dashboard/features/navigation/nav_models.dart';
 import 'package:taxi_driver_aa_dashboard/features/payment/payment_config.dart';
 import 'package:taxi_driver_aa_dashboard/features/payment/payment_panel.dart';
 import 'package:taxi_driver_aa_dashboard/features/payment/qr_codec.dart';
@@ -165,6 +169,47 @@ void main() {
       matchesGoldenFile('../build/previews/qr-expanded-sample.png'),
     );
   });
+  for (final width in [194.0, 400.0, 600.0]) {
+    testWidgets('Navigation geometry fixture $width', (tester) async {
+      tester.view.physicalSize = Size(width, 720);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final nav = NavController(connected: false);
+      addTearDown(nav.dispose);
+      nav.status = 'Mẫu kiểm tra bố cục';
+      nav.route = NavRoute(
+        [
+          const LatLng(21.281, 106.194),
+          const LatLng(21.282, 106.194),
+          const LatLng(21.282, 106.196),
+        ],
+        [const TurnStep(1, 'Rẽ phải · Đường mẫu')],
+        100,
+        'fixture',
+      );
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: dashboardTheme(Brightness.dark),
+          home: Scaffold(
+            body: MapPanel(
+              key: const ValueKey('navigation-fixture'),
+              navigation: nav,
+              loadNetwork: false,
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+      await expectLater(
+        find.byKey(const ValueKey('navigation-fixture')),
+        matchesGoldenFile(
+          '../build/previews/navigation-geometry-${width.toInt()}.png',
+        ),
+      );
+    });
+  }
   for (var page = 0; page < 3; page++) {
     testWidgets('Calendar full page $page', (tester) async {
       tester.view.physicalSize = const Size(400, 800);

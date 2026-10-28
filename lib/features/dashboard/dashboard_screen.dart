@@ -13,6 +13,8 @@ import '../calendar/event_item.dart';
 import '../payment/payment_store.dart';
 import '../payment/payment_config.dart';
 import '../payment/payment_panel.dart';
+import '../navigation/nav_controller.dart';
+import '../navigation/map_panel.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({
@@ -21,11 +23,13 @@ class DashboardScreen extends StatefulWidget {
     this.car = false,
     this.calendar,
     this.payment,
+    this.navigation,
   });
   final DashboardController controller;
   final bool car;
   final CalendarStore? calendar;
   final PaymentStore? payment;
+  final NavController? navigation;
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
@@ -137,6 +141,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           _ => DashboardFrame(
             config: controller.config,
+            map: widget.navigation == null
+                ? null
+                : MapPanel(navigation: widget.navigation!, car: widget.car),
             payment: widget.payment?.config ?? const PaymentConfig(),
             events: widget.calendar?.events ?? const [],
             showMonthly: widget.calendar?.showMonthly ?? false,
@@ -184,12 +191,14 @@ class DashboardFrame extends StatefulWidget {
     this.showMonthly = false,
     this.today,
     this.payment = const PaymentConfig(),
+    this.map,
   });
   final LayoutConfig config;
   final List<EventItem> events;
   final bool showMonthly;
   final DateTime? today;
   final PaymentConfig payment;
+  final Widget? map;
   @override
   State<DashboardFrame> createState() => _DashboardFrameState();
 }
@@ -262,70 +271,87 @@ class _DashboardFrameState extends State<DashboardFrame> {
                   key: const ValueKey('map-panel'),
                   margin: EdgeInsets.zero,
                   clipBehavior: Clip.antiAlias,
-                  child: Stack(
-                    children: [
-                      const Positioned.fill(
-                        child: CustomPaint(painter: _RoadPlaceholder()),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'TAXI XANH',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: math.max(22, 24 * config.fontScale),
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Text(
-                              'Bảng điều khiển · Giai đoạn 3',
-                              style: TextStyle(
-                                fontSize: math.max(16, 18 * config.fontScale),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(12),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Icons.navigation_outlined, size: 56),
-                              Text(
-                                'Ô bản đồ',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: math.max(22, 26 * config.fontScale),
-                                ),
-                              ),
-                              Text(
-                                'Dẫn đường sẽ có ở Giai đoạn 4',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: math.max(16, 18 * config.fontScale),
-                                ),
-                              ),
-                            ],
+                  child:
+                      widget.map ??
+                      Stack(
+                        children: [
+                          const Positioned.fill(
+                            child: CustomPaint(painter: _RoadPlaceholder()),
                           ),
-                        ),
+                          Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'TAXI XANH',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: math.max(
+                                      22,
+                                      24 * config.fontScale,
+                                    ),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                Text(
+                                  'Bảng điều khiển · Giai đoạn 4',
+                                  style: TextStyle(
+                                    fontSize: math.max(
+                                      16,
+                                      18 * config.fontScale,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(12),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    Icons.navigation_outlined,
+                                    size: 56,
+                                  ),
+                                  Text(
+                                    'Ô bản đồ',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: math.max(
+                                        22,
+                                        26 * config.fontScale,
+                                      ),
+                                    ),
+                                  ),
+                                  Text(
+                                    'Mở Bản đồ và dẫn đường trên điện thoại',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: math.max(
+                                        16,
+                                        18 * config.fontScale,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const Positioned(
+                            left: 16,
+                            bottom: 16,
+                            right: 16,
+                            child: Text(
+                              'Bản đồ giữ chỗ · Không dùng để dẫn đường',
+                              style: TextStyle(fontSize: 16),
+                            ),
+                          ),
+                        ],
                       ),
-                      const Positioned(
-                        left: 16,
-                        bottom: 16,
-                        right: 16,
-                        child: Text(
-                          'Bản đồ giữ chỗ · Không dùng để dẫn đường',
-                          style: TextStyle(fontSize: 16),
-                        ),
-                      ),
-                    ],
-                  ),
                 ),
               ),
               if (enabled.isNotEmpty) ...[

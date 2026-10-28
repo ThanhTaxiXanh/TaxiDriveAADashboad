@@ -112,10 +112,10 @@ class _PaymentPanelState extends State<PaymentPanel> {
             : 0.0;
         final contentHeight = cell.maxHeight - footerHeight;
         // Brand is always directly below QR. Give it the full cell width where
-        // its aspect ratio fits, keeping at least 65% of the content for QR.
+        // its aspect ratio fits, keeping at least 55% of the content for QR.
         final brandHeight = config.brandPath.isEmpty
             ? 0.0
-            : math.min(cell.maxWidth / brandAspect, contentHeight * .35);
+            : math.min(cell.maxWidth / brandAspect, contentHeight * .45);
         final side = math.max(
           0.0,
           math.min(cell.maxWidth, contentHeight - brandHeight),
