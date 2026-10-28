@@ -174,7 +174,11 @@ void main() {
           });
       final client = MockClient((request) async {
         requests++;
-        return http.Response(jsonEncode(osrmFixture()), 200);
+        return http.Response(
+          jsonEncode(osrmFixture()),
+          200,
+          headers: {'content-type': 'application/json; charset=utf-8'},
+        );
       });
       final one = NavController(connected: false, client: client),
           two = NavController(connected: false, client: client);
