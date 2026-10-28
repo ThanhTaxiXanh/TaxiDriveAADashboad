@@ -21,20 +21,45 @@ class DashboardApp extends StatefulWidget {
   @override
   State<DashboardApp> createState() => _DashboardAppState();
 }
+
 class _DashboardAppState extends State<DashboardApp> {
   final controller = DashboardController();
   @override
-  void dispose() { controller.dispose(); super.dispose(); }
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
   @override
-  Widget build(BuildContext context) => ListenableBuilder(listenable: controller, builder: (context, _) {
-    ThemeData theme(Brightness brightness) => ThemeData(useMaterial3: true, brightness: brightness, fontFamily: 'NotoSans', colorSchemeSeed: const Color(0xff41b69b));
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: theme(Brightness.light), darkTheme: theme(Brightness.dark),
-      themeMode: switch (controller.config.theme) { 'light' => ThemeMode.light, 'dark' => ThemeMode.dark, _ => widget.car ? (controller.diagnostics['carDark'] == true ? ThemeMode.dark : ThemeMode.light) : ThemeMode.system },
-      home: widget.car ? DashboardScreen(controller: controller, car: true) : DiagnosticsScreen(controller: controller),
-    );
-  });
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: controller,
+    builder: (context, _) {
+      ThemeData theme(Brightness brightness) => ThemeData(
+        useMaterial3: true,
+        brightness: brightness,
+        fontFamily: 'NotoSans',
+        colorSchemeSeed: const Color(0xff41b69b),
+      );
+      return MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: theme(Brightness.light),
+        darkTheme: theme(Brightness.dark),
+        themeMode: switch (controller.config.theme) {
+          'light' => ThemeMode.light,
+          'dark' => ThemeMode.dark,
+          _ =>
+            widget.car
+                ? (controller.diagnostics['carDark'] == true
+                      ? ThemeMode.dark
+                      : ThemeMode.light)
+                : ThemeMode.system,
+        },
+        home: widget.car
+            ? DashboardScreen(controller: controller, car: true)
+            : DiagnosticsScreen(controller: controller),
+      );
+    },
+  );
 }
 
 class DiagnosticsScreen extends StatefulWidget {
@@ -97,13 +122,35 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
             OutlinedButton(
               onPressed: () => Navigator.of(context).push(
                 MaterialPageRoute<void>(
-                  builder: (_) => DashboardScreen(controller: widget.controller),
+                  builder: (_) =>
+                      DashboardScreen(controller: widget.controller),
                 ),
               ),
               child: const Text('Xem trước bố cục'),
             ),
-            OutlinedButton(onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => Scaffold(appBar: AppBar(title: const Text('Bố cục')), body: ListenableBuilder(listenable: widget.controller, builder: (_, _) => LayoutSettings(controller: widget.controller))))), child: const Text('Chỉnh bố cục')),
-            OutlinedButton(onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const SpikeScreen(preview: true))), child: const Text('Đo FPS và thử chạm (Giai đoạn 0)')),
+            OutlinedButton(
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => Scaffold(
+                    appBar: AppBar(title: const Text('Bố cục')),
+                    body: ListenableBuilder(
+                      listenable: widget.controller,
+                      builder: (_, _) =>
+                          LayoutSettings(controller: widget.controller),
+                    ),
+                  ),
+                ),
+              ),
+              child: const Text('Chỉnh bố cục'),
+            ),
+            OutlinedButton(
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const SpikeScreen(preview: true),
+                ),
+              ),
+              child: const Text('Xem khung thử Giai đoạn 0'),
+            ),
             const SizedBox(height: 16),
             const Text(
               'Chưa có bản đồ, lịch âm, QR thanh toán và media. '
