@@ -31,6 +31,11 @@ class MainActivity : FlutterActivity() {
             startActivity(Intent.createChooser(send, "Chia sẻ nhật ký"))
         }
     }
+    override fun onResume() {
+        super.onResume()
+        val state = (application as DashboardApplication).navigation
+        if (state.running) state.initSpeech()
+    }
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (calendarFiles?.activityResult(requestCode, resultCode, data) != true) super.onActivityResult(requestCode, resultCode, data)
     }

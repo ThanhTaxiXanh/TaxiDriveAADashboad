@@ -152,13 +152,17 @@ class NavigationState(private val context: Context) {
         emit()
     }
     fun scale(factor: Double) { if (factor.isFinite() && factor > 0) { scale = factor.coerceIn(.5, 2.0); gesture++; emit() } }
+    private fun configureVoice(engine: TextToSpeech) {
+        val voice = engine.voices?.firstOrNull { it.locale.language == "vi" && !it.isNetworkConnectionRequired && !it.features.contains(TextToSpeech.Engine.KEY_FEATURE_NOT_INSTALLED) }
+        voiceReady = voice != null
+        if (voice != null) { engine.setVoice(voice); engine.setAudioAttributes(attributes); engine.setSpeechRate(.95f) }
+    }
     fun initSpeech() {
-        if (tts != null) return
+        if (tts != null) { configureVoice(tts!!); emit(); return }
         tts = TextToSpeech(context) { result -> handler.post {
             val engine = tts ?: return@post
             if (result == TextToSpeech.SUCCESS) {
-                val voice = engine.voices?.firstOrNull { it.locale.language == "vi" && !it.isNetworkConnectionRequired && !it.features.contains(TextToSpeech.Engine.KEY_FEATURE_NOT_INSTALLED) }
-                if (voice != null) { engine.voice = voice; engine.setAudioAttributes(attributes); engine.setSpeechRate(.95f); voiceReady = true }
+                configureVoice(engine)
                 engine.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
                     override fun onStart(id: String?) {}
                     override fun onDone(id: String?) { handler.post { audio.abandonAudioFocusRequest(focus) } }

@@ -178,11 +178,36 @@ void main() {
       final nav = NavController(connected: false);
       addTearDown(nav.dispose);
       nav.status = 'Mẫu kiểm tra bố cục';
-      nav.route = NavRoute([const LatLng(21.281, 106.194), const LatLng(21.282, 106.194), const LatLng(21.282, 106.196)], [const TurnStep(1, 'Rẽ phải · Đường mẫu')], 100, 'fixture');
-      await tester.pumpWidget(MaterialApp(theme: dashboardTheme(Brightness.dark), home: Scaffold(body: MapPanel(key: const ValueKey('navigation-fixture'), navigation: nav, loadNetwork: false))));
+      nav.route = NavRoute(
+        [
+          const LatLng(21.281, 106.194),
+          const LatLng(21.282, 106.194),
+          const LatLng(21.282, 106.196),
+        ],
+        [const TurnStep(1, 'Rẽ phải · Đường mẫu')],
+        100,
+        'fixture',
+      );
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: dashboardTheme(Brightness.dark),
+          home: Scaffold(
+            body: MapPanel(
+              key: const ValueKey('navigation-fixture'),
+              navigation: nav,
+              loadNetwork: false,
+            ),
+          ),
+        ),
+      );
       await tester.pump();
       expect(tester.takeException(), isNull);
-      await expectLater(find.byKey(const ValueKey('navigation-fixture')), matchesGoldenFile('../build/previews/navigation-geometry-${width.toInt()}.png'));
+      await expectLater(
+        find.byKey(const ValueKey('navigation-fixture')),
+        matchesGoldenFile(
+          '../build/previews/navigation-geometry-${width.toInt()}.png',
+        ),
+      );
     });
   }
   for (var page = 0; page < 3; page++) {
