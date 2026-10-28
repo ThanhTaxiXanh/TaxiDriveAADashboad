@@ -13,27 +13,58 @@ import 'gpu_map_panel.dart';
 export 'map_widgets.dart';
 
 class MapPanel extends StatefulWidget {
-  const MapPanel({super.key, required this.navigation, this.car = false, this.loadNetwork = true});
+  const MapPanel({
+    super.key,
+    required this.navigation,
+    this.car = false,
+    this.loadNetwork = true,
+  });
   final NavController navigation;
   final bool car, loadNetwork;
   @override
   State<MapPanel> createState() => _MapPanelHostState();
 }
+
 class _MapPanelHostState extends State<MapPanel> {
   bool gpuFailed = false;
   bool? previous3d;
   @override
-  Widget build(BuildContext context) => ListenableBuilder(listenable: widget.navigation, builder: (context, _) {
-    final enabled = widget.navigation.settings['map3d'] != false;
-    if (enabled != previous3d) { previous3d = enabled; gpuFailed = false; }
-    if (widget.loadNetwork && enabled && !gpuFailed) return GpuMapPanel(navigation: widget.navigation, car: widget.car, onUnavailable: () {
-      WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) setState(() => gpuFailed = true); });
-    });
-    return Column(children: [
-      if (gpuFailed) const Text('3D chưa khởi động được trên máy này · đang dùng bản đồ 2D', style: TextStyle(fontSize: 16)),
-      Expanded(child: FlatMapPanel(navigation: widget.navigation, car: widget.car, loadNetwork: widget.loadNetwork)),
-    ]);
-  });
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: widget.navigation,
+    builder: (context, _) {
+      final enabled = widget.navigation.settings['map3d'] != false;
+      if (enabled != previous3d) {
+        previous3d = enabled;
+        gpuFailed = false;
+      }
+      if (widget.loadNetwork && enabled && !gpuFailed)
+        return GpuMapPanel(
+          navigation: widget.navigation,
+          car: widget.car,
+          onUnavailable: () {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) setState(() => gpuFailed = true);
+            });
+          },
+        );
+      return Column(
+        children: [
+          if (gpuFailed)
+            const Text(
+              '3D chưa khởi động được trên máy này · đang dùng bản đồ 2D',
+              style: TextStyle(fontSize: 16),
+            ),
+          Expanded(
+            child: FlatMapPanel(
+              navigation: widget.navigation,
+              car: widget.car,
+              loadNetwork: widget.loadNetwork,
+            ),
+          ),
+        ],
+      );
+    },
+  );
 }
 
 class FlatMapPanel extends StatefulWidget {
@@ -150,7 +181,11 @@ class _FlatMapPanelState extends State<FlatMapPanel> {
         fixTime = nav.fix!.time.millisecondsSinceEpoch;
         camera.move(
           nav.fix!.point,
-          FollowCamera.zoom(speedKmh: nav.fix!.speed * 3.6, navigating: nav.active && nav.precise && !nav.offRoute, turnMeters: nav.nextTurn == null ? null : nav.turnDistance),
+          FollowCamera.zoom(
+            speedKmh: nav.fix!.speed * 3.6,
+            navigating: nav.active && nav.precise && !nav.offRoute,
+            turnMeters: nav.nextTurn == null ? null : nav.turnDistance,
+          ),
         );
         camera.rotate(nav.settings['headingUp'] != false ? -nav.bearing : 0);
       }
@@ -247,7 +282,13 @@ class _FlatMapPanelState extends State<FlatMapPanel> {
                           width: 54,
                           height: 54,
                           rotate: true,
-                          child: VehicleMarker(fresh: nav.precise, headingRadians: (nav.bearing + camera.camera.rotation) * math.pi / 180),
+                          child: VehicleMarker(
+                            fresh: nav.precise,
+                            headingRadians:
+                                (nav.bearing + camera.camera.rotation) *
+                                math.pi /
+                                180,
+                          ),
                         ),
                     ],
                   ),
@@ -308,13 +349,31 @@ class _FlatMapPanelState extends State<FlatMapPanel> {
                           fixTime = null;
                         });
                         if (nav.fix != null && ready) {
-                          camera.move(nav.fix!.point, FollowCamera.zoom(speedKmh: nav.fix!.speed * 3.6, navigating: nav.active && nav.precise, turnMeters: nav.nextTurn == null ? null : nav.turnDistance));
-                          camera.rotate(nav.settings['headingUp'] != false ? -nav.bearing : 0);
+                          camera.move(
+                            nav.fix!.point,
+                            FollowCamera.zoom(
+                              speedKmh: nav.fix!.speed * 3.6,
+                              navigating: nav.active && nav.precise,
+                              turnMeters: nav.nextTurn == null
+                                  ? null
+                                  : nav.turnDistance,
+                            ),
+                          );
+                          camera.rotate(
+                            nav.settings['headingUp'] != false
+                                ? -nav.bearing
+                                : 0,
+                          );
                         }
                         changed();
                         if (nav.fix == null || !nav.precise) {
-                          try { await nav.locate(); } catch (_) {}
-                          if (mounted && nav.fix == null) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(nav.status)));
+                          try {
+                            await nav.locate();
+                          } catch (_) {}
+                          if (mounted && nav.fix == null)
+                            ScaffoldMessenger.of(
+                              context,
+                            ).showSnackBar(SnackBar(content: Text(nav.status)));
                         }
                       },
                       icon: Icon(
@@ -347,4 +406,3 @@ class _FlatMapPanelState extends State<FlatMapPanel> {
     ],
   );
 }
-

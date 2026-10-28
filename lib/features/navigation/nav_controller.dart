@@ -121,8 +121,12 @@ class NavController extends ChangeNotifier {
       offCount = 0;
     }
     fix = data['fix'] is Map ? NavFix.fromJson(data['fix']) : null;
-    if (fix != null && fix!.bearing >= 0 && fix!.speed >= 2)
-      { bearing = _hasBearing ? smoothBearing(bearing, fix!.bearing) : fix!.bearing; _hasBearing = true; }
+    if (fix != null && fix!.bearing >= 0 && fix!.speed >= 2) {
+      bearing = _hasBearing
+          ? smoothBearing(bearing, fix!.bearing)
+          : fix!.bearing;
+      _hasBearing = true;
+    }
     final incomingGesture = data['gesture'] as int? ?? 0;
     if (_nativeGesture != null && _nativeGesture != incomingGesture) gesture++;
     _nativeGesture = incomingGesture;
@@ -248,9 +252,14 @@ class NavController extends ChangeNotifier {
   }
 
   Future<void> locate() async {
-    if (car) { await methods.invokeMethod('requestLocation'); } else { await startLocation(); }
+    if (car) {
+      await methods.invokeMethod('requestLocation');
+    } else {
+      await startLocation();
+    }
     await reload();
   }
+
   Future<void> startLocation() => location.invokeMethod('start');
   Future<void> stopLocation() => methods.invokeMethod('stopLocation');
   Future<void> start(Place place) => methods.invokeMethod('destination', {

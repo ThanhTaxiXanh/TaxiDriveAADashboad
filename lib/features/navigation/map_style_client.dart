@@ -43,4 +43,3 @@ class MapStyleClient extends http.BaseClient {
     super.close();
   }
 }
-
