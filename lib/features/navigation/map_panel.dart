@@ -6,7 +6,6 @@ import 'package:flutter_map_vector_tiles/flutter_map_vector_tiles.dart' as vt;
 import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 import 'nav_controller.dart';
-import 'nav_models.dart';
 import 'routing_provider.dart';
 
 class MapStyleClient extends http.BaseClient {

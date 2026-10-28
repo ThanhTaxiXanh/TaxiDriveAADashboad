@@ -29,7 +29,7 @@ probe('dark', lambda: {'layers': len(get('https://tiles.openfreemap.org/styles/d
 a, b = (21.281, 106.194), (21.284, 106.200)
 params = {'locations': [{'lat': a[0], 'lon': a[1]}, {'lat': b[0], 'lon': b[1]}], 'costing': 'auto', 'language': 'vi-VN', 'units': 'kilometers'}
 def valhalla():
-    trip = get('https://valhalla1.openstreetmap.de/route?' + urllib.parse.urlencode({'json': json.dumps(params)}))['trip']
+    trip = get('https://valhalla1.openstreetmap.de/route?' + urllib.parse.urlencode({'json': json.dumps(params, separators=(',', ':'))}))['trip']
     assert trip['status'] == 0 and trip['legs'][0]['shape']
     return {'language': trip.get('language'), 'maneuvers': len(trip['legs'][0]['maneuvers'])}
 probe('valhalla', valhalla)
