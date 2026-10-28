@@ -28,8 +28,10 @@ jobs:
       - run: flutter pub get
       - name: Check formatting
         run: |
-          dart format --output=show lib test > formatter-output.txt
-          dart format --output=none --set-exit-if-changed lib test
+          if ! dart format --output=none --set-exit-if-changed lib test; then
+            python3 tools/show_format.py
+            exit 1
+          fi
       - run: flutter analyze
       - run: flutter test --coverage
       - name: Configure personal signing if available
