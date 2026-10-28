@@ -13,6 +13,8 @@ import '../calendar/event_item.dart';
 import '../payment/payment_store.dart';
 import '../payment/payment_config.dart';
 import '../payment/payment_panel.dart';
+import '../navigation/nav_controller.dart';
+import '../navigation/map_panel.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({
@@ -21,11 +23,13 @@ class DashboardScreen extends StatefulWidget {
     this.car = false,
     this.calendar,
     this.payment,
+    this.navigation,
   });
   final DashboardController controller;
   final bool car;
   final CalendarStore? calendar;
   final PaymentStore? payment;
+  final NavController? navigation;
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
@@ -137,6 +141,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           _ => DashboardFrame(
             config: controller.config,
+            map: widget.navigation == null ? null : MapPanel(navigation: widget.navigation!, car: widget.car),
             payment: widget.payment?.config ?? const PaymentConfig(),
             events: widget.calendar?.events ?? const [],
             showMonthly: widget.calendar?.showMonthly ?? false,
@@ -184,12 +189,14 @@ class DashboardFrame extends StatefulWidget {
     this.showMonthly = false,
     this.today,
     this.payment = const PaymentConfig(),
+    this.map,
   });
   final LayoutConfig config;
   final List<EventItem> events;
   final bool showMonthly;
   final DateTime? today;
   final PaymentConfig payment;
+  final Widget? map;
   @override
   State<DashboardFrame> createState() => _DashboardFrameState();
 }
@@ -262,7 +269,7 @@ class _DashboardFrameState extends State<DashboardFrame> {
                   key: const ValueKey('map-panel'),
                   margin: EdgeInsets.zero,
                   clipBehavior: Clip.antiAlias,
-                  child: Stack(
+                  child: widget.map ?? Stack(
                     children: [
                       const Positioned.fill(
                         child: CustomPaint(painter: _RoadPlaceholder()),
@@ -282,7 +289,7 @@ class _DashboardFrameState extends State<DashboardFrame> {
                               ),
                             ),
                             Text(
-                              'Bảng điều khiển · Giai đoạn 3',
+                              'Bảng điều khiển · Giai đoạn 4',
                               style: TextStyle(
                                 fontSize: math.max(16, 18 * config.fontScale),
                               ),
@@ -305,7 +312,7 @@ class _DashboardFrameState extends State<DashboardFrame> {
                                 ),
                               ),
                               Text(
-                                'Dẫn đường sẽ có ở Giai đoạn 4',
+                                'Mở Bản đồ và dẫn đường trên điện thoại',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   fontSize: math.max(16, 18 * config.fontScale),

@@ -9,7 +9,7 @@ import org.json.JSONObject
 import org.json.JSONArray
 
 // Main-thread only. Fixed, technical fields: never accepts free-form Dart logs.
-class Diagnostics(context: Context) {
+class Diagnostics(val context: Context) {
     val payment by lazy { PaymentStorage(context.applicationContext) }
     val calendar by lazy { EventDatabase(context.applicationContext) }
     private val prefs = context.getSharedPreferences("dashboard", Context.MODE_PRIVATE)
@@ -48,13 +48,14 @@ class Diagnostics(context: Context) {
     fun calendarChanged() { update("calendarRevision" to ((values["calendarRevision"] as Long) + 1), "calendarError" to "Không") }
     fun add(sink: EventChannel.EventSink) { listeners.add(sink); sink.success(HashMap(values)) }
     fun remove(sink: EventChannel.EventSink?) { listeners.remove(sink) }
-    fun export(): String = "Taxi Xanh / phase 3\n$values\n" + if (file.exists()) file.readText() else ""
+    fun export(): String = "Taxi Xanh / phase 4\n$values\n" + if (file.exists()) file.readText() else ""
 }
 
 class DashboardBridge(engine: FlutterEngine, private val state: Diagnostics, share: (() -> Unit)? = null) {
     private val methods = MethodChannel(engine.dartExecutor.binaryMessenger, "taxi/dashboard")
     private val events = EventChannel(engine.dartExecutor.binaryMessenger, "taxi/dashboard/events")
     private var sink: EventChannel.EventSink? = null
+    private val navigation = NavigationBridge(engine, (state.context.applicationContext as DashboardApplication).navigation, state.context.applicationContext, share != null)
     init {
         methods.setMethodCallHandler { call, result ->
             when (call.method) {
@@ -131,6 +132,7 @@ class DashboardBridge(engine: FlutterEngine, private val state: Diagnostics, sha
         })
     }
     fun close() {
+        navigation.close()
         state.remove(sink); sink = null
         methods.setMethodCallHandler(null); events.setStreamHandler(null)
     }

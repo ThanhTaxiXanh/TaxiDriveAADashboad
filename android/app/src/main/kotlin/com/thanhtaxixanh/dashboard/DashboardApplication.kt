@@ -9,9 +9,11 @@ import io.flutter.embedding.engine.dart.DartExecutor
 class DashboardApplication : Application() {
     lateinit var engines: FlutterEngineGroup
     lateinit var diagnostics: Diagnostics
+    lateinit var navigation: NavigationState
     override fun onCreate() {
         super.onCreate()
         diagnostics = Diagnostics(this)
+        navigation = NavigationState(this)
         engines = FlutterEngineGroup(this)
     }
     fun engine(entrypoint: String): FlutterEngine {

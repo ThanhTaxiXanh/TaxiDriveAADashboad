@@ -51,6 +51,7 @@ private class SpikeScreen(context: CarContext) : Screen(context), SurfaceCallbac
     override fun onVisibleAreaChanged(visibleArea: Rect) = renderer.visible(visibleArea)
     override fun onClick(x: Float, y: Float) = renderer.click(x, y)
     override fun onScroll(distanceX: Float, distanceY: Float) = renderer.scroll(distanceX, distanceY)
+    override fun onScale(focusX: Float, focusY: Float, scaleFactor: Float) { (carContext.applicationContext as DashboardApplication).navigation.scale(scaleFactor.toDouble()) }
 
     override fun onGetTemplate(): Template {
         fun action(icon: Int, panel: String? = null): Action = Action.Builder()
