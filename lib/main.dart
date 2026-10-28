@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'car_main.dart';
 import 'core/third_party_licenses.dart';
 import 'core/car_bridge.dart';
@@ -9,7 +10,9 @@ import 'features/payment/payment_screen.dart';
 import 'core/dashboard_theme.dart';
 import 'features/calendar/calendar_store.dart';
 import 'features/calendar/event_screen.dart';
+
 import 'package:flutter_localizations/flutter_localizations.dart';
+
 import 'core/dashboard_controller.dart';
 import 'features/settings/layout_settings.dart';
 import 'features/dashboard/spike_screen.dart';

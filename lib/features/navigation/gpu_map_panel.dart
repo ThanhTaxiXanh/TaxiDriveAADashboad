@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:maplibre_flutter_gpu/maplibre_flutter_gpu.dart' as gpu;
+
 import 'follow_camera.dart';
 import 'map_3d_style.dart';
 import 'map_style_client.dart';
@@ -192,9 +194,8 @@ class _GpuMapPanelState extends State<GpuMapPanel> {
         await nav.locate();
       } catch (_) {}
       if (mounted && nav.fix == null)
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(nav.status)));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(nav.status)));
     }
   }
 

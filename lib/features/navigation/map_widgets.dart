@@ -1,5 +1,7 @@
 import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
+
 import 'nav_controller.dart';
 
 String distanceText(double meters) => meters < 1000

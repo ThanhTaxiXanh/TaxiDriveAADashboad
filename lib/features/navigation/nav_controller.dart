@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
+
 import 'nav_models.dart';
 import 'routing_provider.dart';
 
@@ -301,9 +303,8 @@ class NavController extends ChangeNotifier {
         try {
           searchCache = Map<String, dynamic>.from(
             jsonDecode(
-                  await methods.invokeMethod<String>('getSearchCache') ?? '{}',
-                )
-                as Map,
+              await methods.invokeMethod<String>('getSearchCache') ?? '{}',
+            ) as Map,
           );
         } catch (_) {
           searchCache = {};
@@ -321,9 +322,8 @@ class NavController extends ChangeNotifier {
       lastSearch = DateTime.now();
       final data = await getJson(
         client,
-        serverUri(
-          endpoint('photon'),
-        ).replace(queryParameters: {'q': query, 'limit': '5'}),
+        serverUri(endpoint('photon'))
+            .replace(queryParameters: {'q': query, 'limit': '5'}),
       );
       final result = <Place>[];
       for (final item in data['features'] as List) {

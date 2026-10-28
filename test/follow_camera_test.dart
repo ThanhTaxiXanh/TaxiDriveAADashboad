@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:taxi_driver_aa_dashboard/features/navigation/follow_camera.dart';
@@ -59,33 +60,30 @@ void main() {
     nav.accept({...data, 'gesture': 19});
     expect(nav.gesture, 1);
   });
-  test(
-    'Car recenter requests the shared GPS service, not a phone permission dialog',
-    () async {
-      final nav = NavController(connected: false, car: true)..revision = 0;
-      addTearDown(nav.dispose);
-      final called = <String>[];
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(NavController.methods, (
-            MethodCall call,
-          ) async {
-            called.add(call.method);
-            return call.method == 'snapshot'
-                ? jsonEncode({
-                    'routeRevision': 0,
-                    'carConnected': true,
-                    'backgroundLocation': true,
-                  })
-                : null;
-          });
-      addTearDown(
-        () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-            .setMockMethodCallHandler(NavController.methods, null),
-      );
-      await nav.locate();
-      expect(called, ['requestLocation', 'snapshot']);
-      expect(nav.carConnected, true);
-      expect(nav.backgroundLocation, true);
-    },
-  );
+  test('Car recenter requests the shared GPS service, not a phone permission dialog', () async {
+    final nav = NavController(connected: false, car: true)..revision = 0;
+    addTearDown(nav.dispose);
+    final called = <String>[];
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(NavController.methods, (
+          MethodCall call,
+        ) async {
+          called.add(call.method);
+          return call.method == 'snapshot'
+              ? jsonEncode({
+                  'routeRevision': 0,
+                  'carConnected': true,
+                  'backgroundLocation': true,
+                })
+              : null;
+        });
+    addTearDown(
+      () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(NavController.methods, null),
+    );
+    await nav.locate();
+    expect(called, ['requestLocation', 'snapshot']);
+    expect(nav.carConnected, true);
+    expect(nav.backgroundLocation, true);
+  });
 }
