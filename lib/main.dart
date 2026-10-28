@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'car_main.dart';
 import 'core/car_bridge.dart';
+import 'core/dashboard_theme.dart';
+import 'core/dashboard_controller.dart';
+import 'features/settings/layout_settings.dart';
+import 'features/dashboard/spike_screen.dart';
 import 'features/dashboard/dashboard_screen.dart';
 
 void main() {
@@ -12,32 +16,56 @@ void main() {
 @pragma('vm:entry-point')
 void carMain() => startCar();
 
-class DashboardApp extends StatelessWidget {
+class DashboardApp extends StatefulWidget {
   const DashboardApp({super.key, this.car = false});
   final bool car;
+  @override
+  State<DashboardApp> createState() => _DashboardAppState();
+}
+
+class _DashboardAppState extends State<DashboardApp> {
+  final controller = DashboardController();
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
 
   @override
-  Widget build(BuildContext context) => MaterialApp(
-    debugShowCheckedModeBanner: false,
-    theme: ThemeData.dark(useMaterial3: true).copyWith(
-      scaffoldBackgroundColor: const Color(0xff0c1824),
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: const Color(0xff41d7b0),
-        brightness: Brightness.dark,
-      ),
-    ),
-    home: car ? const DashboardScreen() : const DiagnosticsScreen(),
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: controller,
+    builder: (context, _) {
+      return MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: dashboardTheme(Brightness.light),
+        darkTheme: dashboardTheme(Brightness.dark),
+        themeMode: switch (controller.config.theme) {
+          'light' => ThemeMode.light,
+          'dark' => ThemeMode.dark,
+          _ =>
+            widget.car
+                ? (controller.diagnostics['carDark'] == true
+                      ? ThemeMode.dark
+                      : ThemeMode.light)
+                : ThemeMode.system,
+        },
+        home: widget.car
+            ? DashboardScreen(controller: controller, car: true)
+            : DiagnosticsScreen(controller: controller),
+      );
+    },
   );
 }
 
 class DiagnosticsScreen extends StatefulWidget {
-  const DiagnosticsScreen({super.key});
+  const DiagnosticsScreen({super.key, required this.controller});
+  final DashboardController controller;
   @override
   State<DiagnosticsScreen> createState() => _DiagnosticsScreenState();
 }
 
 class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
-  late final stream = CarBridge.watch();
+  Stream<Map<String, dynamic>> get stream => CarBridge.watch();
   String? error;
 
   @override
@@ -45,13 +73,14 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
     appBar: AppBar(title: const Text('Taxi Xanh · Chẩn đoán')),
     body: StreamBuilder<Map<String, dynamic>>(
       stream: stream,
+      initialData: widget.controller.diagnostics,
       builder: (context, state) {
         final data = state.data ?? {};
         return ListView(
           padding: const EdgeInsets.all(20),
           children: [
             const Text(
-              'Giai đoạn 0 · Thử trên xe khi đang đỗ',
+              'Giai đoạn 1 · Bố cục bảng điều khiển',
               style: TextStyle(fontSize: 22),
             ),
             const SizedBox(height: 16),
@@ -88,15 +117,39 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
             OutlinedButton(
               onPressed: () => Navigator.of(context).push(
                 MaterialPageRoute<void>(
-                  builder: (_) => const DashboardScreen(preview: true),
+                  builder: (_) =>
+                      DashboardScreen(controller: widget.controller),
                 ),
               ),
-              child: const Text('Xem trước khung thử'),
+              child: const Text('Xem trước bố cục'),
+            ),
+            OutlinedButton(
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => Scaffold(
+                    appBar: AppBar(title: const Text('Bố cục')),
+                    body: ListenableBuilder(
+                      listenable: widget.controller,
+                      builder: (_, _) =>
+                          LayoutSettings(controller: widget.controller),
+                    ),
+                  ),
+                ),
+              ),
+              child: const Text('Chỉnh bố cục'),
+            ),
+            OutlinedButton(
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const SpikeScreen(preview: true),
+                ),
+              ),
+              child: const Text('Xem khung thử Giai đoạn 0'),
             ),
             const SizedBox(height: 16),
             const Text(
               'Chưa có bản đồ, lịch âm, QR thanh toán và media. '
-              'Cần xác nhận chữ tiếng Việt, chạm và FPS trên xe trước khi triển khai tiếp.',
+              'Đã xác nhận hiển thị và chạm trên VF e34. Đang thử bố cục và đồng bộ cấu hình.',
             ),
           ],
         );

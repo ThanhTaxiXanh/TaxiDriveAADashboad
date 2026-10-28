@@ -1,6 +1,7 @@
 package com.thanhtaxixanh.dashboard.car
 
 import android.content.Intent
+import android.content.res.Configuration
 import android.graphics.Rect
 import androidx.car.app.AppManager
 import androidx.car.app.CarAppService
@@ -26,13 +27,17 @@ class DashboardCarService : CarAppService() {
     override fun createHostValidator(): HostValidator = HostValidator.ALLOW_ALL_HOSTS_VALIDATOR
     override fun onCreateSession(): Session = object : Session() {
         override fun onCreateScreen(intent: Intent): Screen = SpikeScreen(carContext)
+        override fun onCarConfigurationChanged(newConfiguration: Configuration) {
+            super.onCarConfigurationChanged(newConfiguration)
+            (carContext.applicationContext as DashboardApplication).diagnostics.update("carDark" to carContext.isDarkMode)
+        }
     }
 }
 
 private class SpikeScreen(context: CarContext) : Screen(context), SurfaceCallback {
     private val renderer = SurfaceRenderer(context)
     init {
-        (context.applicationContext as DashboardApplication).diagnostics.update("carApi" to context.carAppApiLevel)
+        (context.applicationContext as DashboardApplication).diagnostics.update("carApi" to context.carAppApiLevel, "carDark" to context.isDarkMode, "panel" to "dashboard")
         context.getCarService(AppManager::class.java).setSurfaceCallback(this)
         lifecycle.addObserver(object : DefaultLifecycleObserver {
             override fun onDestroy(owner: LifecycleOwner) {
@@ -45,13 +50,22 @@ private class SpikeScreen(context: CarContext) : Screen(context), SurfaceCallbac
     override fun onSurfaceDestroyed(surfaceContainer: SurfaceContainer) = renderer.release()
     override fun onVisibleAreaChanged(visibleArea: Rect) = renderer.visible(visibleArea)
     override fun onClick(x: Float, y: Float) = renderer.click(x, y)
+    override fun onScroll(distanceX: Float, distanceY: Float) = renderer.scroll(distanceX, distanceY)
 
     override fun onGetTemplate(): Template {
-        val home = Action.Builder()
-            .setIcon(CarIcon.Builder(IconCompat.createWithResource(carContext, R.drawable.ic_taxi)).build())
-            .setOnClickListener { carContext.finishCarApp() }.build()
+        fun action(icon: Int, panel: String? = null): Action = Action.Builder()
+            .setIcon(CarIcon.Builder(IconCompat.createWithResource(carContext, icon)).build())
+            .setOnClickListener {
+                val state = (carContext.applicationContext as DashboardApplication).diagnostics
+                state.update("panel" to (panel ?: "dashboard"))
+                if (panel == null) carContext.finishCarApp()
+            }.build()
         return NavigationTemplate.Builder()
-            .setActionStrip(ActionStrip.Builder().addAction(home).build())
+            .setActionStrip(ActionStrip.Builder()
+                .addAction(action(R.drawable.ic_home))
+                .addAction(action(R.drawable.ic_youtube, "youtube"))
+                .addAction(action(R.drawable.ic_settings, "settings"))
+                .addAction(action(R.drawable.ic_plus, "modules")).build())
             .setMapActionStrip(ActionStrip.Builder().addAction(Action.PAN).build())
             .build()
     }

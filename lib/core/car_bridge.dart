@@ -9,9 +9,11 @@ class CarBridge {
         await methods.invokeMapMethod<String, dynamic>('snapshot') ?? {},
       );
 
-  static Stream<Map<String, dynamic>> watch() => events
+  static final _stream = events
       .receiveBroadcastStream()
-      .map((event) => Map<String, dynamic>.from(event as Map));
+      .map((event) => Map<String, dynamic>.from(event as Map))
+      .asBroadcastStream();
+  static Stream<Map<String, dynamic>> watch() => _stream;
 
   static Future<void> reportFrames(int frames, int elapsedMs) => methods
       .invokeMethod('frames', {'frames': frames, 'elapsedMs': elapsedMs});
