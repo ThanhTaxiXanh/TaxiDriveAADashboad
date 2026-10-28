@@ -3,7 +3,7 @@ description: Thử nghiệm Flutter trực tiếp trên bề mặt Android Auto.
 publish_to: none
 version: 0.4.1+1
 environment:
-  sdk: '>=3.9.0 <4.0.0'
+  sdk: '>=3.13.0 <4.0.0'
 dependencies:
   flutter:
     sdk: flutter
@@ -24,6 +24,7 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
+    - assets/licenses/MAPLIBRE_NATIVE_NOTICES.md
     - assets/fonts/OFL.txt
     - assets/events_vn.json
     - assets/banks_vn.json

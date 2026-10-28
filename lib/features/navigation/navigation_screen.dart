@@ -155,6 +155,14 @@ class _NavigationScreenState extends State<NavigationScreen> {
                     () => nav.saveSettings({..._settings(nav), 'headingUp': v}),
                   ),
           ),
+          TextButton(
+            onPressed: () => showLicensePage(
+              context: context,
+              applicationName: 'Taxi Xanh',
+              applicationVersion: '0.4.1',
+            ),
+            child: const Text('Giấy phép thư viện và bản đồ'),
+          ),
           const Divider(),
           TextField(
             controller: query,

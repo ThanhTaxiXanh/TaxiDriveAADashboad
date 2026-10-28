@@ -286,7 +286,8 @@ class _FlatMapPanelState extends State<FlatMapPanel> {
                             builder: (context) => VehicleMarker(
                               fresh: nav.precise,
                               headingRadians:
-                                  (nav.bearing + MapCamera.of(context).rotation) *
+                                  (nav.bearing +
+                                      MapCamera.of(context).rotation) *
                                   math.pi /
                                   180,
                             ),
