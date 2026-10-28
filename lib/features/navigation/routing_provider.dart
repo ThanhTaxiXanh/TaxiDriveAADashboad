@@ -21,17 +21,24 @@ Uri serverUri(String value) {
 
 Future<Map<String, dynamic>> getJson(http.Client client, Uri uri) async {
   final abort = Completer<void>();
-  final timer = Timer(const Duration(seconds: 12), () { if (!abort.isCompleted) abort.complete(); });
+  final timer = Timer(const Duration(seconds: 12), () {
+    if (!abort.isCompleted) abort.complete();
+  });
   try {
     return await (() async {
-      final request = http.AbortableRequest('GET', uri, abortTrigger: abort.future)
-        ..headers['User-Agent'] = navUserAgent;
+      final request = http.AbortableRequest(
+        'GET',
+        uri,
+        abortTrigger: abort.future,
+      )..headers['User-Agent'] = navUserAgent;
       final response = await client.send(request);
-      if (response.statusCode != 200) throw const FormatException('Máy chủ chưa trả được dữ liệu');
+      if (response.statusCode != 200)
+        throw const FormatException('Máy chủ chưa trả được dữ liệu');
       final bytes = <int>[];
       await for (final chunk in response.stream) {
         bytes.addAll(chunk);
-        if (bytes.length > 4 * 1024 * 1024) throw const FormatException('Dữ liệu tuyến quá lớn');
+        if (bytes.length > 4 * 1024 * 1024)
+          throw const FormatException('Dữ liệu tuyến quá lớn');
       }
       return jsonDecode(utf8.decode(bytes)) as Map<String, dynamic>;
     })().timeout(const Duration(seconds: 12));
