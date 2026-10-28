@@ -71,7 +71,7 @@ class LayoutSettings extends StatelessWidget {
           config.leftFraction,
           .4,
           .75,
-          .05,
+          .1,
           (v) => controller.update(config.copyWith(leftFraction: v)),
         ),
         for (var i = 0; i < 3; i++) ...[
