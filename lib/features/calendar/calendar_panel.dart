@@ -181,27 +181,29 @@ class _CalendarPanelState extends State<CalendarPanel> {
           );
         } else if (page == 1) {
           if (box.maxHeight < 370) {
-            body = SingleChildScrollView(child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'Tháng ${today.month}/${today.year}',
-                  style: TextStyle(fontSize: bodySize),
-                ),
-                Text(
-                  'Âm hôm nay: $lunar',
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: bodySize),
-                ),
-                TextButton(
-                  onPressed: widget.onExpand == null
-                      ? null
-                      : () => widget.onExpand!(1),
-                  child: const Text('Xem tháng đầy đủ'),
-                ),
-              ],
-            ));
+            body = SingleChildScrollView(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Tháng ${today.month}/${today.year}',
+                    style: TextStyle(fontSize: bodySize),
+                  ),
+                  Text(
+                    'Âm hôm nay: $lunar',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: bodySize),
+                  ),
+                  TextButton(
+                    onPressed: widget.onExpand == null
+                        ? null
+                        : () => widget.onExpand!(1),
+                    child: const Text('Xem tháng đầy đủ'),
+                  ),
+                ],
+              ),
+            );
           } else {
             body = monthGrid(today);
           }
