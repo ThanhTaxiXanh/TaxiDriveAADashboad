@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:taxi_driver_aa_dashboard/core/layout_config.dart';
+import 'package:taxi_driver_aa_dashboard/core/dashboard_theme.dart';
 import 'package:taxi_driver_aa_dashboard/features/dashboard/dashboard_screen.dart';
 
 void main() {
@@ -32,11 +33,7 @@ void main() {
               );
         await tester.pumpWidget(
           MaterialApp(
-            theme: ThemeData.dark().copyWith(
-              textTheme: ThemeData.dark().textTheme.apply(
-                fontFamily: 'NotoSans',
-              ),
-            ),
+            theme: dashboardTheme(Brightness.dark),
             home: Scaffold(
               body: DashboardFrame(
                 key: const ValueKey('preview'),

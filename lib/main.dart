@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'car_main.dart';
 import 'core/car_bridge.dart';
+import 'core/dashboard_theme.dart';
 import 'core/dashboard_controller.dart';
 import 'features/settings/layout_settings.dart';
 import 'features/dashboard/spike_screen.dart';
@@ -34,24 +35,10 @@ class _DashboardAppState extends State<DashboardApp> {
   Widget build(BuildContext context) => ListenableBuilder(
     listenable: controller,
     builder: (context, _) {
-      ThemeData theme(Brightness brightness) => ThemeData(
-        useMaterial3: true,
-        brightness: brightness,
-        fontFamily: 'NotoSans',
-        textTheme: const TextTheme(
-          bodySmall: TextStyle(fontSize: 16),
-          bodyMedium: TextStyle(fontSize: 16),
-          bodyLarge: TextStyle(fontSize: 18),
-          labelSmall: TextStyle(fontSize: 16),
-          labelMedium: TextStyle(fontSize: 16),
-          labelLarge: TextStyle(fontSize: 16),
-        ),
-        colorSchemeSeed: const Color(0xff41b69b),
-      );
       return MaterialApp(
         debugShowCheckedModeBanner: false,
-        theme: theme(Brightness.light),
-        darkTheme: theme(Brightness.dark),
+        theme: dashboardTheme(Brightness.light),
+        darkTheme: dashboardTheme(Brightness.dark),
         themeMode: switch (controller.config.theme) {
           'light' => ThemeMode.light,
           'dark' => ThemeMode.dark,
