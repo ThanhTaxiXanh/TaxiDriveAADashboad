@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:taxi_driver_aa_dashboard/features/dashboard/dashboard_screen.dart';
+import 'package:taxi_driver_aa_dashboard/features/dashboard/spike_screen.dart';
 
 void main() {
   for (final size in [
@@ -14,7 +14,7 @@ void main() {
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
       await tester.pumpWidget(
-        const MaterialApp(home: DashboardScreen(preview: true)),
+        const MaterialApp(home: SpikeScreen(preview: true)),
       );
       expect(
         find.text('Tiếng Việt: Âm lịch · Đường phố · Nguyễn'),

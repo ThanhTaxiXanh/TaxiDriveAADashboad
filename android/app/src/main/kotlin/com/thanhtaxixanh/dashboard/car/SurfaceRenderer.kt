@@ -6,6 +6,8 @@ import android.graphics.Rect
 import android.hardware.display.DisplayManager
 import android.hardware.display.VirtualDisplay
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.os.SystemClock
 import android.view.InputDevice
 import android.view.MotionEvent
@@ -27,6 +29,34 @@ class SurfaceRenderer(private val context: Context) {
     private var engine: FlutterEngine? = null
     private var bridge: DashboardBridge? = null
     private var current: SurfaceContainer? = null
+    private val handler = Handler(Looper.getMainLooper())
+    private var dragTime = 0L
+    private var dragX = 0f
+    private var dragY = 0f
+    private val endDrag = Runnable { finishDrag(MotionEvent.ACTION_UP) }
+    private fun dispatch(action: Int) {
+        val event = MotionEvent.obtain(dragTime, SystemClock.uptimeMillis(), action, dragX, dragY, 0)
+        event.source = InputDevice.SOURCE_TOUCHSCREEN
+        try { view?.dispatchTouchEvent(event) } finally { event.recycle() }
+    }
+    private fun finishDrag(action: Int) {
+        handler.removeCallbacks(endDrag)
+        if (dragTime != 0L) { dispatch(action); dragTime = 0L }
+    }
+    fun scroll(dx: Float, dy: Float) {
+        val surface = current ?: return
+        if (!dx.isFinite() || !dy.isFinite() || view == null) return
+        handler.removeCallbacks(endDrag)
+        if (dragTime == 0L) {
+            dragTime = SystemClock.uptimeMillis()
+            dragX = surface.width / 2f; dragY = surface.height / 2f
+            dispatch(MotionEvent.ACTION_DOWN)
+        }
+        dragX = (dragX - dx).coerceIn(0f, surface.width.toFloat() - 1)
+        dragY = (dragY - dy).coerceIn(0f, surface.height.toFloat() - 1)
+        dispatch(MotionEvent.ACTION_MOVE)
+        handler.postDelayed(endDrag, 160)
+    }
 
     fun attach(container: SurfaceContainer) {
         release()
@@ -79,6 +109,7 @@ class SurfaceRenderer(private val context: Context) {
 
     // Host coordinates are physical surface pixels; the view fills the same display.
     fun click(x: Float, y: Float) {
+        finishDrag(MotionEvent.ACTION_CANCEL)
         val target = view ?: return
         val surface = current ?: return
         if (!x.isFinite() || !y.isFinite() || x < 0 || y < 0 || x >= surface.width || y >= surface.height) return
@@ -93,6 +124,7 @@ class SurfaceRenderer(private val context: Context) {
     }
 
     fun release() {
+        finishDrag(MotionEvent.ACTION_CANCEL)
         view?.detachFromFlutterEngine()
         view = null
         presentation?.dismiss(); presentation = null

@@ -2,7 +2,7 @@
 import json
 import pathlib
 import subprocess
-for root in ('lib', 'test'):
+for root in ('lib', 'test', 'tools'):
     for path in sorted(pathlib.Path(root).rglob('*.dart')):
         result = subprocess.run(['dart', 'format', '--output=show', '--summary=none', str(path)],
                                 check=True, capture_output=True, text=True)
