@@ -7,15 +7,20 @@ import '../../core/dashboard_controller.dart';
 import '../../core/layout_config.dart';
 import '../../modules/dashboard_module.dart';
 import '../settings/layout_settings.dart';
+import '../calendar/calendar_panel.dart';
+import '../calendar/calendar_store.dart';
+import '../calendar/event_item.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({
     super.key,
     required this.controller,
     this.car = false,
+    this.calendar,
   });
   final DashboardController controller;
   final bool car;
+  final CalendarStore? calendar;
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
@@ -54,7 +59,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) => ListenableBuilder(
-    listenable: widget.controller,
+    listenable: Listenable.merge([widget.controller, if (widget.calendar != null) widget.calendar!]),
     builder: (context, _) => buildBody(context),
   );
   Widget buildBody(BuildContext context) {
@@ -121,7 +126,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ],
           ),
-          _ => DashboardFrame(config: controller.config),
+          _ => DashboardFrame(config: controller.config, events: widget.calendar?.events ?? const [], showMonthly: widget.calendar?.showMonthly ?? false),
         },
       ),
       bottomNavigationBar: widget.car
@@ -157,9 +162,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 }
 
-class DashboardFrame extends StatelessWidget {
-  const DashboardFrame({super.key, required this.config});
+class DashboardFrame extends StatefulWidget {
+  const DashboardFrame({super.key, required this.config, this.events = const [], this.showMonthly = false, this.today});
   final LayoutConfig config;
+  final List<EventItem> events;
+  final bool showMonthly;
+  final DateTime? today;
+  @override
+  State<DashboardFrame> createState() => _DashboardFrameState();
+}
+class _DashboardFrameState extends State<DashboardFrame> {
+  bool expandedCalendar = false;
+  int calendarPage = 0;
+  LayoutConfig get config => widget.config;
   @override
   Widget build(BuildContext context) {
     final fractions = config.fractions;
@@ -214,7 +229,7 @@ class DashboardFrame extends StatelessWidget {
                               ),
                             ),
                             Text(
-                              'Khung bố cục · Giai đoạn 1',
+                              'Bảng điều khiển · Giai đoạn 2',
                               style: TextStyle(
                                 fontSize: math.max(16, 18 * config.fontScale),
                               ),
@@ -263,7 +278,9 @@ class DashboardFrame extends StatelessWidget {
               if (enabled.isNotEmpty) ...[
                 const SizedBox(width: 8),
                 Expanded(
-                  child: Column(
+                  child: expandedCalendar && config.rowEnabled[0]
+                    ? Card(child: CalendarPanel(events: widget.events, showMonthly: widget.showMonthly, today: widget.today, fontScale: config.fontScale, expanded: true, initialPage: calendarPage, onCollapse: () => setState(() => expandedCalendar = false)))
+                    : Column(
                     children: [
                       for (final i in enabled)
                         Expanded(
@@ -273,7 +290,7 @@ class DashboardFrame extends StatelessWidget {
                             child: Card(
                               key: ValueKey('row-$i'),
                               margin: EdgeInsets.zero,
-                              child: LayoutBuilder(
+                              child: i == 0 ? CalendarPanel(events: widget.events, showMonthly: widget.showMonthly, today: widget.today, fontScale: config.fontScale, onExpand: (page) => setState(() { expandedCalendar = true; calendarPage = page; })) : LayoutBuilder(
                                 builder: (context, cell) => Padding(
                                   padding: const EdgeInsets.all(12),
                                   child: Column(

@@ -1,42 +1,35 @@
 # Taxi Xanh · Android Auto Dashboard
 
-**Giai đoạn 1 — khung bố cục.** VF e34 (màn hình nguyên bản), Redmi Note 12 Pro / Android 13, Android Auto có dây và không dây.
+**Giai đoạn 2 — v0.2.0: lịch Âm/Dương và sự kiện ngoại tuyến.** Thanh đã xác nhận GĐ1 chỉnh bố cục hoạt động mượt trên VF e34 / Redmi Note 12 Pro, Android 13.
 
-Thanh đã xác nhận GĐ0: chữ Việt rõ, chạm đúng, Home hoạt động. Nhật ký ghi nhận khung đầu ~259 ms, 16 chạm, FPS Flutter ổn định ~31, Car API 8. CI xanh, khóa ký ổn định và APK nightly đã có. GĐ1 tiếp tục giữ cầu nối Surface đã chạy.
+## Cài và thử trên điện thoại
 
-## Tải và thử khi xe đang đỗ
+1. Tải [APK arm64 từ nightly](https://github.com/ThanhTaxiXanh/TaxiDriveAADashboad/releases/download/nightly/app-arm64-v8a-release.apk) và cài đè sau khi Releases ghi **Giai đoạn 2**. Giữ nguyên khóa ký hiện tại.
+2. Mở **Lịch và sự kiện**. Dùng **Đối chiếu một ngày** để chọn năm ngày bất kỳ trong 2000–2050 rồi so ngày âm với lịch anh thường dùng. Kiểm tra tháng nhuận và Can Chi.
+3. **Thêm sự kiện**: đặt tên, lịch âm/dương, ngày/tháng, lặp hằng năm hoặc năm cụ thể, màu và ghi chú. Nếu là âm lịch, có lựa chọn tính cả tháng nhuận. Chạm sự kiện riêng để sửa; nút thùng rác để xóa. Sự kiện khởi tạo chỉ có công tắc ẩn/hiện.
+4. Bật **Mùng Một và ngày Rằm hằng tháng** nếu cần. Ngày 30 âm không tồn tại dùng 29; danh sách có nhãn “29 thay 30 âm”. Sự kiện 29/2 dương chỉ xuất hiện trong năm có ngày này.
+5. **Xuất JSON** mở hộp chia sẻ để lưu bản sao. **Nhập JSON** mở bộ chọn tệp và cho xem số mục trước khi nhập gộp. Tệp sai hoặc quá lớn được từ chối, không xóa dữ liệu cũ. Trùng ID cập nhật, ID khác vẫn giữ. Nội dung sự kiện riêng có trong tệp xuất, không có trong nhật ký chẩn đoán.
 
-1. Vào [Releases/nightly](https://github.com/ThanhTaxiXanh/TaxiDriveAADashboad/releases/tag/nightly), tải `app-arm64-v8a-release.apk` cho Redmi Note 12 Pro và cài đè. Chờ ghi chú phát hành ghi **Giai đoạn 1** trước khi thử bố cục mới.
-2. Mở Taxi Xanh trên điện thoại → **Chỉnh bố cục**. Đổi chiều rộng bản đồ, trọng số hàng, bật/tắt hàng, sáng/tối và cỡ chữ. Quan sát thay đổi ngay trên xe.
-3. Trên xe bấm icon bánh răng, dùng nút +/− để chỉnh; vuốt dọc để cuộn danh sách. Không cần bàn phím. Bấm **Về bảng điều khiển** để xem kết quả.
-4. Thử tắt một hàng (các hàng còn lại chia đều), tắt cả ba (bản đồ mở hết chiều ngang), rồi **Đặt lại mặc định**. Ngắt/kết nối Android Auto và khởi động lại ứng dụng: cấu hình phải được giữ.
-5. Thử bốn icon gốc Android Auto: **Home** thoát về Android Auto; **YouTube** mở chỗ giữ; **Cài đặt** mở bố cục; **+** mở danh sách module đang trống.
-6. Gửi kết quả: bố cục có vừa vùng nhìn thấy, có tràn/cắt chữ, đồng bộ hai chiều và lưu sau khởi động lại được không. Dùng **Chia sẻ nhật ký** nếu lỗi.
+## Thử trên xe khi đang đỗ
 
-Lịch, QR, bản đồ dẫn đường và media hiện là ô giữ chỗ, có ghi rõ giai đoạn dự kiến. Không dùng hình đường minh họa để dẫn đường. YouTube chưa phát nội dung. Dữ liệu QR trong ảnh đã gửi chưa được đưa lên repo hoặc vào APK.
+- Hàng lịch hiển thị ngày dương, âm (có nhãn nhuận), Can Chi và ba sự kiện gần nhất có số ngày còn lại. Nếu hàng thấp, vuốt dọc để đọc thêm hoặc bấm icon mở rộng.
+- Chạm hàng/tiêu đề để luân phiên **Hôm nay → Lưới tháng → Sự kiện gần nhất**. Ở hàng quá thấp có nút mở rộng lịch; khi mở, lịch chiếm toàn cột phải và vẫn giữ ô bản đồ bên trái. Nút **Thu gọn lịch** khôi phục ba hàng.
+- Lưới tháng có ngày dương và ngày âm ở từng ô; nút trước/sau đổi tháng, chạm ô xem đầy đủ ngày âm ở dòng dưới. Cỡ ô có thể cuộn nếu không đủ chỗ, không thu chữ xuống dưới 16 dp.
+- Tắt mạng, thêm/sửa/ẩn một sự kiện trên điện thoại, xem xe cập nhật. Kết nối lại và mở lại ứng dụng để kiểm tra vẫn còn. Trên xe chỉ đọc, không nhập tên/ghi chú.
+- Kiểm tra bố cục và Home vẫn hoạt động. Nếu lỗi, dùng **Chia sẻ nhật ký** trên điện thoại.
 
-## Cấu hình và kiểm tra
+Cổng GĐ2 cần Thanh đối chiếu năm ngày và xác nhận lịch/sự kiện trên xe. Sau đó mới sang QR thanh toán GĐ3. Bản đồ dẫn đường, QR và media vẫn giữ chỗ.
 
-`LayoutConfig` là cấu hình chung: cột trái 40–75% (mặc định 58%), trọng số `[1, 1.2, .8]`, mỗi hàng bật ít nhất 15%; khi tắt hàng, các hàng còn lại chia đều. Cỡ chữ 0.8–1.6, chế độ tự động/sáng/tối. Trên xe chế độ tự động theo sáng/tối của Android Auto. Cấu hình lưu trong SharedPreferences native; MethodChannel ghi, EventChannel phát lại cho hai engine trong cùng tiến trình. Cập nhật đồng thời sử dụng giá trị được native tiếp nhận sau cùng.
+## Kiểm tra và kiến trúc
 
-CI kiểm tra unit test, widget test (1280×720, 1920×720, 803×843 và 800×480), build APK debug và release ký. Artifact **ui-previews** có chín PNG với Noto Sans; đây là ảnh golden tạo lần đầu để duyệt, chưa phải baseline được Thanh duyệt để so sánh hồi quy pixel. Bài kiểm tra bố cục vẫn kiểm tra cấu trúc và lỗi tràn độc lập.
+CI kiểm tra 18.628 ngày (2000–2050) qua vòng dương→âm→dương, bốn mốc Tết trong đặc tả, năm nhuận 2023/2025, Can Chi, ngày không tồn tại, lặp sự kiện, nhập/xuất JSON và bố cục. Ảnh PNG đầu tiên trong artifact **ui-previews** dùng Noto Sans và ngày cố định 28/10/2026 để dễ so sánh; chưa phải baseline pixel được Thanh duyệt.
 
-VF e34 đã báo Surface 934×843, che 131 px bên phải: widget áp dụng visibleArea và kiểm tra vùng nội dung xấp xỉ 803×843. Ở trạng thái tĩnh FPS có thể thấp vì ứng dụng chỉ vẽ khi cần; số này không dùng thay cho phép thử hoạt ảnh 30 Hz của GĐ0. Cầu nối vẫn báo FPS Flutter, không đo trực tiếp khung quét màn xe.
+Dữ liệu lưu SQLite chung cho hai engine qua cầu nối native thay cho drift; quy tắc lịch/sự kiện và UI ở Dart. EventChannel chỉ báo revision, engine đọc lại khi dữ liệu đổi. Không log tên, ghi chú hay nội dung JSON của sự kiện. FileProvider chỉ chia sẻ tệp xuất do anh yêu cầu; không tự gửi lên máy chủ. Bộ chọn tệp không cần quyền toàn bộ bộ nhớ.
 
-## Cài Android Auto và chẩn đoán
+[Chi tiết lịch, nguồn và khác biệt với Kotlin](docs/CALENDAR_NOTES.md) · [GĐ1 và cách chỉnh bố cục](docs/PHASE_1.md) · [Đặc tả](docs/SPECIFICATION.md) · [Nghiên cứu Fermata](docs/FERMATA_REVIEW.md).
 
-Android Auto → cài đặt → chạm **Phiên bản** 10 lần; menu nhà phát triển → bật **Nguồn không xác định**. Trong **Tùy chỉnh trình khởi chạy**, bật Taxi Xanh rồi kết nối lại. Host có thể giới hạn app cài ngoài tùy phiên bản.
+## Khóa ký và cài Android Auto
 
-Chẩn đoán trên điện thoại hiển thị Surface, vùng nhìn thấy, số chạm, FPS và lỗi; nút chia sẻ chỉ mở hộp chọn ứng dụng nhận. Nhật ký chỉ lưu trường kỹ thuật/cấu hình bố cục, không tài khoản ngân hàng hay GPS.
+Giữ nguyên ciphertext `android/signing/personal.jks.gpg` và Secret `ANDROID_SIGNING_PASSWORD`; sao lưu cả hai. Không khởi tạo hoặc thay khóa để cập nhật bản này. Android Auto: bật chế độ nhà phát triển, bật Nguồn không xác định và Taxi Xanh trong Tùy chỉnh trình khởi chạy như GĐ0.
 
-## Khóa ký
-
-Khóa đã khởi tạo dưới dạng ciphertext `android/signing/personal.jks.gpg`. **Giữ nguyên Secret `ANDROID_SIGNING_PASSWORD` và sao lưu cả mật khẩu lẫn tệp mã hóa. Không chạy khởi tạo lại để thay khóa.** CI giải mã trên runner, chỉ upload APK. Không commit hoặc gửi khóa thô vào chat/log. Mất khóa hoặc mật khẩu sẽ không cập nhật đè được.
-
-Kho mới hoàn toàn có thể làm theo hướng dẫn khởi tạo trong [tài liệu GĐ0](docs/PHASE_0.md). Khóa hiện tại không nằm trong workspace và không bị thay trong GĐ1.
-
-## Phạm vi tiếp theo
-
-Cổng GĐ1 cần Thanh xác nhận trên xe: đổi tỷ lệ có hiệu lực ngay, cấu hình giữ sau kết nối lại, chữ vừa và Home vẫn hoạt động. Sau đó mới triển khai GĐ2 lịch Âm/Dương và sự kiện.
-
-[Đặc tả](docs/SPECIFICATION.md) · [Nghiên cứu Fermata](docs/FERMATA_REVIEW.md). Mã tự viết, không nhúng mã GPL Fermata. Phông Noto Sans được đóng gói theo SIL Open Font License 1.1, kèm bản quyền tại `assets/fonts/OFL.txt`.
+Mã tự viết, không nhúng mã GPL Fermata. Noto Sans theo SIL OFL 1.1, kèm giấy phép ở assets/fonts/OFL.txt.
