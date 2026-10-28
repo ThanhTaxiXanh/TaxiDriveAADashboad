@@ -1,8 +1,10 @@
 import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
+
 import 'payment_config.dart';
 import 'payment_panel.dart';
 import 'payment_store.dart';
@@ -69,8 +71,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     } catch (_) {
       if (mounted)
         setState(
-          () => message =
-              'Không đọc được danh sách ngân hàng hoặc ảnh khôi phục. Hãy thử mở lại.',
+          () => message = 'Không đọc được danh sách ngân hàng hoặc ảnh khôi phục. Hãy thử mở lại.',
         );
     }
   }
@@ -97,8 +98,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     } catch (_) {
       if (mounted)
         setState(
-          () => message =
-              'Không thực hiện được. Kiểm tra ảnh và thử lại; QR đã lưu vẫn được giữ.',
+          () => message = 'Không thực hiện được. Kiểm tra ảnh và thử lại; QR đã lưu vẫn được giữ.',
         );
     } finally {
       if (mounted) setState(() => busy = false);
@@ -150,8 +150,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
           message =
               'Đã đọc VietQR và CRC hợp lệ. Có thể bật Dựng lại QR sắc nét.';
         } catch (_) {
-          message =
-              'Giữ ảnh gốc. Chưa xác minh được VietQR/CRC; hãy quét thử bằng ứng dụng ngân hàng.';
+          message = 'Giữ ảnh gốc. Chưa xác minh được VietQR/CRC; hãy quét thử bằng ứng dụng ngân hàng.';
         }
       }
     });
@@ -234,8 +233,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     if (mounted)
       setState(() {
         preview = c;
-        message =
-            'Đã lưu trên máy và cập nhật lên xe. Hãy quét kiểm tra bằng app ngân hàng.';
+        message = 'Đã lưu trên máy và cập nhật lên xe. Hãy quét kiểm tra bằng app ngân hàng.';
       });
   });
   Future<void> clear() async {
@@ -452,9 +450,9 @@ class _BankPickerState extends State<_BankPicker> {
   Widget build(BuildContext context) {
     final q = VietQr.asciiNote(query);
     final matches = widget.banks.where(
-      (b) => VietQr.asciiNote(
-        '${b.name} ${b.shortName} ${b.code} ${b.bin}',
-      ).contains(q),
+      (b) =>
+          VietQr.asciiNote('${b.name} ${b.shortName} ${b.code} ${b.bin}')
+              .contains(q),
     );
     return SafeArea(
       child: Padding(

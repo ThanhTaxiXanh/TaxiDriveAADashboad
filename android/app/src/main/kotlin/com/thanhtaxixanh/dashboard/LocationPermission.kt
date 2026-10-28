@@ -27,6 +27,17 @@ class LocationPermission(private val activity: MainActivity, engine: FlutterEngi
                         if (permissions.isEmpty()) start() else activity.requestPermissions(permissions.toTypedArray(), 4041)
                     }
                 }
+                "background" -> {
+                    val fine = ContextCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                    if (!fine) result.error("FINE_FIRST", "Cấp Vị trí chính xác trước, rồi chọn quyền Luôn luôn", null)
+                    else if (Build.VERSION.SDK_INT >= 30) {
+                        activity.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, android.net.Uri.parse("package:${activity.packageName}")))
+                        result.success(null)
+                    } else {
+                        activity.requestPermissions(arrayOf(Manifest.permission.ACCESS_BACKGROUND_LOCATION), 4042)
+                        result.success(null)
+                    }
+                }
                 "settings" -> { activity.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, android.net.Uri.parse("package:${activity.packageName}"))); result.success(null) }
                 "source" -> { activity.startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://www.openstreetmap.org/copyright"))); result.success(null) }
                 "installVoice" -> {
@@ -41,9 +52,10 @@ class LocationPermission(private val activity: MainActivity, engine: FlutterEngi
         val result = pending; pending = null
         val granted = listOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION).any { ContextCompat.checkSelfPermission(activity, it) == PackageManager.PERMISSION_GRANTED }
         if (!granted) { result?.error("LOCATION_DENIED", "Cần quyền vị trí. Mở quyền ứng dụng và bật Vị trí chính xác", null); return }
+        (activity.application as DashboardApplication).carLocation.manualStart()
         try { ContextCompat.startForegroundService(activity, Intent(activity, NavigationLocationService::class.java)); result?.success(null) }
         catch (e: Exception) { result?.error("LOCATION_START", "Mở ứng dụng điện thoại rồi bật vị trí lại", null) }
     }
-    fun permissionResult(request: Int): Boolean { if (request != 4041) return false; start(); return true }
+    fun permissionResult(request: Int): Boolean { if (request == 4042) { (activity.application as DashboardApplication).carLocation.permissionsChanged(); return true }; if (request != 4041) return false; start(); return true }
     fun close() { pending?.error("CLOSED", "Mở lại màn hình vị trí", null); pending = null; methods.setMethodCallHandler(null) }
 }

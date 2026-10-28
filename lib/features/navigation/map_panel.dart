@@ -1,53 +1,18 @@
-import 'dart:convert';
 import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_vector_tiles/flutter_map_vector_tiles.dart' as vt;
-import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
+
 import 'nav_controller.dart';
 import 'routing_provider.dart';
-
-class MapStyleClient extends http.BaseClient {
-  final http.Client inner = http.Client();
-  @override
-  Future<http.StreamedResponse> send(http.BaseRequest request) async {
-    request.headers['User-Agent'] = navUserAgent;
-    final response = await inner
-        .send(request)
-        .timeout(const Duration(seconds: 15));
-    if (!['/styles/liberty', '/styles/dark'].contains(request.url.path) ||
-        response.statusCode != 200)
-      return response;
-    final text = await response.stream.bytesToString().timeout(
-      const Duration(seconds: 15),
-    );
-    final json = jsonDecode(text) as Map;
-    for (final layer in json['layers'] as List) {
-      if (layer['type'] == 'symbol' &&
-          layer['layout'] is Map &&
-          layer['layout']['text-field'] != null) {
-        final value = layer['layout']['text-size'];
-        layer['layout']['text-size'] = value is num ? math.max(16, value) : 18;
-      }
-    }
-    final bytes = utf8.encode(jsonEncode(json));
-    return http.StreamedResponse(
-      Stream.value(bytes),
-      response.statusCode,
-      headers: {...response.headers}
-        ..remove('content-length')
-        ..remove('content-encoding'),
-      request: request,
-    );
-  }
-
-  @override
-  void close() {
-    inner.close();
-    super.close();
-  }
-}
+import 'follow_camera.dart';
+import 'vehicle_marker.dart';
+import 'map_widgets.dart';
+import 'map_style_client.dart';
+import 'gpu_map_panel.dart';
+export 'map_widgets.dart';
 
 class MapPanel extends StatefulWidget {
   const MapPanel({
@@ -57,13 +22,68 @@ class MapPanel extends StatefulWidget {
     this.loadNetwork = true,
   });
   final NavController navigation;
+  final bool car, loadNetwork;
+  @override
+  State<MapPanel> createState() => _MapPanelHostState();
+}
+
+class _MapPanelHostState extends State<MapPanel> {
+  bool gpuFailed = false;
+  bool? previous3d;
+  @override
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: widget.navigation,
+    builder: (context, _) {
+      final enabled = widget.navigation.settings['map3d'] != false;
+      if (enabled != previous3d) {
+        previous3d = enabled;
+        gpuFailed = false;
+      }
+      if (widget.loadNetwork && enabled && !gpuFailed)
+        return GpuMapPanel(
+          navigation: widget.navigation,
+          car: widget.car,
+          onUnavailable: () {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) setState(() => gpuFailed = true);
+            });
+          },
+        );
+      return Column(
+        children: [
+          if (gpuFailed)
+            const Text(
+              '3D chưa khởi động được trên máy này · đang dùng bản đồ 2D',
+              style: TextStyle(fontSize: 16),
+            ),
+          Expanded(
+            child: FlatMapPanel(
+              navigation: widget.navigation,
+              car: widget.car,
+              loadNetwork: widget.loadNetwork,
+            ),
+          ),
+        ],
+      );
+    },
+  );
+}
+
+class FlatMapPanel extends StatefulWidget {
+  const FlatMapPanel({
+    super.key,
+    required this.navigation,
+    this.car = false,
+    this.loadNetwork = true,
+  });
+  final NavController navigation;
   final bool car;
   final bool loadNetwork;
   @override
-  State<MapPanel> createState() => _MapPanelState();
+  State<FlatMapPanel> createState() => _FlatMapPanelState();
 }
 
-class _MapPanelState extends State<MapPanel> {
+class _FlatMapPanelState extends State<FlatMapPanel> {
   final camera = MapController();
   MapStyleClient? client;
   vt.Style? style;
@@ -76,11 +96,12 @@ class _MapPanelState extends State<MapPanel> {
   @override
   void initState() {
     super.initState();
+    gesture = nav.gesture;
     nav.addListener(changed);
   }
 
   @override
-  void didUpdateWidget(MapPanel oldWidget) {
+  void didUpdateWidget(FlatMapPanel oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.navigation != nav) {
       oldWidget.navigation.removeListener(changed);
@@ -158,17 +179,15 @@ class _MapPanelState extends State<MapPanel> {
       }
       if (follow &&
           nav.fix != null &&
-          nav.precise &&
           fixTime != nav.fix!.time.millisecondsSinceEpoch) {
         fixTime = nav.fix!.time.millisecondsSinceEpoch;
-        final speed = nav.fix!.speed * 3.6;
         camera.move(
           nav.fix!.point,
-          speed > 80
-              ? 15.5
-              : speed > 40
-              ? 16.5
-              : 17.5,
+          FollowCamera.zoom(
+            speedKmh: nav.fix!.speed * 3.6,
+            navigating: nav.active && nav.precise && !nav.offRoute,
+            turnMeters: nav.nextTurn == null ? null : nav.turnDistance,
+          ),
         );
         camera.rotate(nav.settings['headingUp'] != false ? -nav.bearing : 0);
       }
@@ -232,7 +251,7 @@ class _MapPanelState extends State<MapPanel> {
                       memoryCacheMaxBytes: 16 * 1024 * 1024,
                       logger: const vt.Logger.noop(),
                     ),
-                  if (nav.route != null)
+                  if (nav.active && nav.route != null)
                     PolylineLayer(
                       polylines: [
                         Polyline(
@@ -262,12 +281,18 @@ class _MapPanelState extends State<MapPanel> {
                       if (nav.fix != null)
                         Marker(
                           point: nav.fix!.point,
-                          width: 40,
-                          height: 40,
-                          child: Icon(
-                            Icons.my_location,
-                            color: nav.precise ? Colors.blue : Colors.grey,
-                            size: 32,
+                          width: 54,
+                          height: 54,
+                          rotate: true,
+                          child: Builder(
+                            builder: (context) => VehicleMarker(
+                              fresh: nav.precise,
+                              headingRadians:
+                                  (nav.bearing +
+                                      MapCamera.of(context).rotation) *
+                                  math.pi /
+                                  180,
+                            ),
                           ),
                         ),
                     ],
@@ -323,12 +348,38 @@ class _MapPanelState extends State<MapPanel> {
                     ),
                     IconButton(
                       tooltip: 'Theo xe',
-                      onPressed: () {
+                      onPressed: () async {
                         setState(() {
                           follow = true;
                           fixTime = null;
                         });
+                        if (nav.fix != null && ready) {
+                          camera.move(
+                            nav.fix!.point,
+                            FollowCamera.zoom(
+                              speedKmh: nav.fix!.speed * 3.6,
+                              navigating: nav.active && nav.precise,
+                              turnMeters: nav.nextTurn == null
+                                  ? null
+                                  : nav.turnDistance,
+                            ),
+                          );
+                          camera.rotate(
+                            nav.settings['headingUp'] != false
+                                ? -nav.bearing
+                                : 0,
+                          );
+                        }
                         changed();
+                        if (nav.fix == null || !nav.precise) {
+                          try {
+                            await nav.locate();
+                          } catch (_) {}
+                          if (mounted && nav.fix == null)
+                            ScaffoldMessenger.of(
+                              context,
+                            ).showSnackBar(SnackBar(content: Text(nav.status)));
+                        }
                       },
                       icon: Icon(
                         Icons.my_location,
@@ -360,122 +411,3 @@ class _MapPanelState extends State<MapPanel> {
     ],
   );
 }
-
-String distanceText(double meters) => meters < 1000
-    ? '${meters.round()} m'
-    : '${(meters / 1000).toStringAsFixed(1)} km';
-
-class NavSummary extends StatelessWidget {
-  const NavSummary({super.key, required this.navigation});
-  final NavController navigation;
-  @override
-  Widget build(BuildContext context) {
-    final n = navigation;
-    return SizedBox(
-      height: 144,
-      child: ColoredBox(
-        color: Theme.of(context).colorScheme.surface,
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  n.instruction,
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Wrap(
-                  spacing: 12,
-                  children: [
-                    Text(
-                      n.precise && n.fix!.speed >= 0
-                          ? '${(n.fix!.speed * 3.6).round()} km/h'
-                          : 'GPS: —',
-                      style: const TextStyle(fontSize: 22),
-                    ),
-                    if (n.active && n.precise && n.route != null && !n.offRoute)
-                      Text(
-                        '${distanceText(n.turnDistance)} tới thao tác',
-                        style: const TextStyle(fontSize: 16),
-                      ),
-                  ],
-                ),
-                if (n.remaining != null)
-                  Text(
-                    'Còn ${distanceText(n.remaining!)} · ~${math.max(1, (n.route!.seconds * n.remaining! / math.max(1, n.route!.length) / 60).round())} phút',
-                    style: const TextStyle(fontSize: 16),
-                  ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-Future<void> showPlaces(
-  BuildContext context,
-  NavController nav,
-) => showModalBottomSheet<void>(
-  context: context,
-  isScrollControlled: true,
-  builder: (context) => SafeArea(
-    child: SizedBox(
-      height: MediaQuery.sizeOf(context).height * .7,
-      child: ListView(
-        padding: const EdgeInsets.all(12),
-        children: [
-          const Text('Yêu thích và gần đây', style: TextStyle(fontSize: 22)),
-          if (!nav.running)
-            const Text(
-              'Mở điện thoại để bật vị trí trước khi dẫn đường',
-              style: TextStyle(fontSize: 16),
-            ),
-          if (nav.places.isEmpty)
-            const Text(
-              'Tìm và lưu địa điểm trên điện thoại',
-              style: TextStyle(fontSize: 16),
-            ),
-          for (final p in [
-            ...nav.places.where((p) => p.favorite),
-            ...nav.places.where((p) => !p.favorite),
-          ])
-            ListTile(
-              leading: Icon(p.favorite ? Icons.star : Icons.history),
-              title: Text(p.name, style: const TextStyle(fontSize: 18)),
-              enabled: nav.running,
-              onTap: () async {
-                try {
-                  await nav.start(p);
-                  if (context.mounted) Navigator.pop(context);
-                } catch (_) {
-                  if (context.mounted)
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          'Bật vị trí trên điện thoại rồi chọn lại điểm đến',
-                        ),
-                      ),
-                    );
-                }
-              },
-            ),
-          TextButton(
-            onPressed: () async {
-              await nav.stop();
-              if (context.mounted) Navigator.pop(context);
-            },
-            child: const Text('Dừng dẫn đường'),
-          ),
-        ],
-      ),
-    ),
-  ),
-);

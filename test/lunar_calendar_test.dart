@@ -48,18 +48,12 @@ void main() {
     }
     expect(count, 18628);
   });
-  test(
-    'Reject absent lunar days and leap flags rather than silently rolling dates',
-    () {
-      expect(LunarCalendar.lunarToSolar(31, 1, 2026, false), isNull);
-      expect(LunarCalendar.lunarToSolar(1, 1, 2026, true), isNull);
-      expect(LunarCalendar.lunarToSolar(1, 5, 2025, true), isNull);
-      expect(
-        () => LunarCalendar.solarToLunar(30, 2, 2026),
-        throwsArgumentError,
-      );
-    },
-  );
+  test('Reject absent lunar days and leap flags rather than silently rolling dates', () {
+    expect(LunarCalendar.lunarToSolar(31, 1, 2026, false), isNull);
+    expect(LunarCalendar.lunarToSolar(1, 1, 2026, true), isNull);
+    expect(LunarCalendar.lunarToSolar(1, 5, 2025, true), isNull);
+    expect(() => LunarCalendar.solarToLunar(30, 2, 2026), throwsArgumentError);
+  });
   test('Vietnam day changes at 17:00 UTC regardless of device zone', () {
     expect(
       LunarCalendar.vietnamToday(DateTime.utc(2026, 2, 16, 16, 59)),

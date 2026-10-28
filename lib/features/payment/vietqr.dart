@@ -118,9 +118,10 @@ class VietQr {
         payload.length < 8 ||
         payload.substring(payload.length - 8, payload.length - 4) != '6304')
       throw const FormatException('Không phải VietQR tài khoản được hỗ trợ');
-    final expected = crc16(
-      payload.substring(0, payload.length - 4),
-    ).toRadixString(16).toUpperCase().padLeft(4, '0');
+    final expected = crc16(payload.substring(0, payload.length - 4))
+        .toRadixString(16)
+        .toUpperCase()
+        .padLeft(4, '0');
     if (payload.substring(payload.length - 4).toUpperCase() != expected)
       throw const FormatException('CRC không đúng');
     final f = parseTlv(payload);

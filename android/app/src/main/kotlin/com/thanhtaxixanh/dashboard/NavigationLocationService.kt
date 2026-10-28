@@ -22,7 +22,7 @@ class NavigationLocationService : Service(), LocationListener {
     private val manager get() = getSystemService(Context.LOCATION_SERVICE) as LocationManager
     override fun onBind(intent: Intent?): IBinder? = null
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (intent?.action == "STOP") { stopSelf(); return START_NOT_STICKY }
+        if (intent?.action == "STOP") { (application as DashboardApplication).carLocation.suppress(); stopSelf(); return START_NOT_STICKY }
         val notifications = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notifications.createNotificationChannel(NotificationChannel("navigation", "Vị trí dẫn đường", NotificationManager.IMPORTANCE_LOW))
         val open = PendingIntent.getActivity(this, 1, Intent(this, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)

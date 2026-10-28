@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' as ui;
+
 import 'package:latlong2/latlong.dart';
 import 'package:taxi_driver_aa_dashboard/features/navigation/map_panel.dart';
 import 'package:taxi_driver_aa_dashboard/features/navigation/nav_controller.dart';
@@ -55,9 +56,8 @@ void main() {
         note: 'MA THU KHONG CHUYEN TIEN',
       ).build();
       final path = '${temp.path}/sample.png';
-      await File(
-        path,
-      ).writeAsBytes(await renderPaymentQr(payload, verify: false));
+      await File(path)
+          .writeAsBytes(await renderPaymentQr(payload, verify: false));
       final recorder = ui.PictureRecorder();
       final canvas = Canvas(recorder);
       canvas.drawRRect(

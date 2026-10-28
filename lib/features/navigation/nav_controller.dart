@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
+
 import 'nav_models.dart';
 import 'routing_provider.dart';
 
@@ -38,6 +40,7 @@ class NavController extends ChangeNotifier {
       voiceReady = false,
       working = false,
       searching = false;
+  bool carConnected = false, backgroundLocation = false;
   NavFix? fix;
   Place? goal;
   List<Place> places = [];
@@ -47,6 +50,8 @@ class NavController extends ChangeNotifier {
   String status = 'Bật vị trí trên điện thoại';
   int revision = -1, goalRevision = 0, generation = 0, gesture = 0;
   double scale = 1, bearing = 0;
+  int? _nativeGesture;
+  bool _hasBearing = false;
   NavRoute? route;
   RouteProgress? progress;
   int offCount = 0;
@@ -102,6 +107,8 @@ class NavController extends ChangeNotifier {
 
   void accept(Map<String, dynamic> data) {
     if (closed) return;
+    carConnected = data['carConnected'] == true;
+    backgroundLocation = data['backgroundLocation'] == true;
     running = data['running'] == true;
     active = data['active'] == true;
     voiceReady = data['voiceReady'] == true;
@@ -116,9 +123,15 @@ class NavController extends ChangeNotifier {
       offCount = 0;
     }
     fix = data['fix'] is Map ? NavFix.fromJson(data['fix']) : null;
-    if (fix != null && fix!.bearing >= 0 && fix!.speed >= 2)
-      bearing = smoothBearing(bearing, fix!.bearing);
-    gesture = data['gesture'] as int? ?? 0;
+    if (fix != null && fix!.bearing >= 0 && fix!.speed >= 2) {
+      bearing = _hasBearing
+          ? smoothBearing(bearing, fix!.bearing)
+          : fix!.bearing;
+      _hasBearing = true;
+    }
+    final incomingGesture = data['gesture'] as int? ?? 0;
+    if (_nativeGesture != null && _nativeGesture != incomingGesture) gesture++;
+    _nativeGesture = incomingGesture;
     scale = (data['scale'] as num? ?? 1).toDouble();
     final next = data['routeRevision'] as int? ?? 0;
     if (next != revision) {
@@ -240,6 +253,15 @@ class NavController extends ChangeNotifier {
     }
   }
 
+  Future<void> locate() async {
+    if (car) {
+      await methods.invokeMethod('requestLocation');
+    } else {
+      await startLocation();
+    }
+    await reload();
+  }
+
   Future<void> startLocation() => location.invokeMethod('start');
   Future<void> stopLocation() => methods.invokeMethod('stopLocation');
   Future<void> start(Place place) => methods.invokeMethod('destination', {
@@ -281,9 +303,8 @@ class NavController extends ChangeNotifier {
         try {
           searchCache = Map<String, dynamic>.from(
             jsonDecode(
-                  await methods.invokeMethod<String>('getSearchCache') ?? '{}',
-                )
-                as Map,
+              await methods.invokeMethod<String>('getSearchCache') ?? '{}',
+            ) as Map,
           );
         } catch (_) {
           searchCache = {};
@@ -301,9 +322,8 @@ class NavController extends ChangeNotifier {
       lastSearch = DateTime.now();
       final data = await getJson(
         client,
-        serverUri(
-          endpoint('photon'),
-        ).replace(queryParameters: {'q': query, 'limit': '5'}),
+        serverUri(endpoint('photon'))
+            .replace(queryParameters: {'q': query, 'limit': '5'}),
       );
       final result = <Place>[];
       for (final item in data['features'] as List) {

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+
 import 'car_main.dart';
+import 'core/third_party_licenses.dart';
 import 'core/car_bridge.dart';
 import 'features/navigation/nav_controller.dart';
 import 'features/navigation/navigation_screen.dart';
@@ -8,7 +10,9 @@ import 'features/payment/payment_screen.dart';
 import 'core/dashboard_theme.dart';
 import 'features/calendar/calendar_store.dart';
 import 'features/calendar/event_screen.dart';
+
 import 'package:flutter_localizations/flutter_localizations.dart';
+
 import 'core/dashboard_controller.dart';
 import 'features/settings/layout_settings.dart';
 import 'features/dashboard/spike_screen.dart';
@@ -31,6 +35,12 @@ class DashboardApp extends StatefulWidget {
 }
 
 class _DashboardAppState extends State<DashboardApp> {
+  @override
+  void initState() {
+    super.initState();
+    registerNativeMapLicenses();
+  }
+
   final controller = DashboardController();
   final calendar = CalendarStore();
   late final navigation = NavController(car: widget.car);
@@ -116,7 +126,7 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
           padding: const EdgeInsets.all(20),
           children: [
             const Text(
-              'Giai đoạn 4 · Bản đồ và dẫn đường',
+              'Giai đoạn 4 · Bản đồ 3D v0.4.1',
               style: TextStyle(fontSize: 22),
             ),
             const SizedBox(height: 16),

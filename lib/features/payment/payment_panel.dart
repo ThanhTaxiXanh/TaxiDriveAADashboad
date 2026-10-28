@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
+
 import 'payment_config.dart';
 
 class PaymentPanel extends StatefulWidget {
@@ -40,9 +42,8 @@ class _PaymentPanelState extends State<PaymentPanel> {
     if (listener != null) stream?.removeListener(listener!);
     brandAspect = 2.4;
     if (config.brandPath.isEmpty) return;
-    stream = FileImage(
-      File(config.brandPath),
-    ).resolve(ImageConfiguration.empty);
+    stream = FileImage(File(config.brandPath))
+        .resolve(ImageConfiguration.empty);
     listener = ImageStreamListener((info, _) {
       if (mounted)
         setState(() => brandAspect = info.image.width / info.image.height);
