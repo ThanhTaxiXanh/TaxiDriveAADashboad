@@ -39,7 +39,7 @@ class MediaSessionControlsTest {
                 .setDurationUs(180000000).setIsSeekable(true).build()) else emptyList())
             .setCurrentMediaItemIndex(if (hasResolvedItem) 0 else C.INDEX_UNSET)
             .setContentPositionMs(if (hasResolvedItem) position else 0)
-            .setContentBufferedPositionMs(if (hasResolvedItem) position else 0)
+            .setContentBufferedPositionMs { if (hasResolvedItem) position else 0L }
             .setPlaybackState(if (!hasResolvedItem) Player.STATE_IDLE else if (buffering) Player.STATE_BUFFERING else Player.STATE_READY)
             .setIsLoading(buffering && hasResolvedItem)
             .setPlayWhenReady(playWanted, Player.PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST)

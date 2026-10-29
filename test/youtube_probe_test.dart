@@ -2,8 +2,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:taxi_driver_aa_dashboard/features/media/youtube_probe.dart';
+import 'package:taxi_driver_aa_dashboard/features/media/youtube_provider.dart';
 
 void main() {
+  test('Search durations do not depend on relative upload-date parsing', () {
+    expect(youtubeDurationMs('1:02:03'), 3723000);
+    expect(youtubeDurationMs('12:34'), 754000);
+    expect(youtubeDurationMs('LIVE'), 0);
+    expect(youtubeDurationMs(null), 0);
+  });
   final uri = Uri.parse('https://sample.googlevideo.com/videoplayback');
   test(
     'Selected media probe requires real media bytes and uses bounded range',

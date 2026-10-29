@@ -136,9 +136,12 @@ class ExplodeStreamProvider implements YoutubeStreamProvider {
     final client = yt.YoutubeExplode();
     try {
       final result = await client.search
-          .search(text)
+          .searchContent(text, filter: yt.TypeFilters.video)
           .timeout(const Duration(seconds: 20));
-      return result.take(15).map(entry).toList();
+      return result.whereType<yt.SearchVideo>().take(15).map((video) => MediaEntry(
+        video.id.value, video.title, video.author,
+        duration: youtubeDurationMs(video.duration),
+      )).toList();
     } finally {
       client.close();
     }
@@ -180,14 +183,28 @@ class ExplodeStreamProvider implements YoutubeStreamProvider {
           );
         })().timeout(const Duration(seconds: 30));
       }
-      final video = await client.videos
-          .get(value)
-          .timeout(const Duration(seconds: 20));
-      return MediaCollection('video_${video.id.value}', video.title, [
-        entry(video),
-      ]);
+      final normalized = uri != null && uri.pathSegments.firstOrNull == 'shorts'
+          ? Uri(scheme: uri.scheme, host: uri.host, path: uri.path).toString()
+          : value;
+      final id = yt.VideoId.fromString(normalized).value;
+      try {
+        final video = await client.videos.get(id).timeout(const Duration(seconds: 12));
+        return MediaCollection('video_${video.id.value}', video.title, [entry(video)]);
+      } catch (_) {
+        // Metadata and playback use different endpoints. A missing watch-page
+        // response must not prevent trying a valid public video link.
+        return MediaCollection('video_$id', 'YouTube · $id', [MediaEntry(id, 'YouTube · $id', '')]);
+      }
     } finally {
       client.close();
     }
   }
+}
+
+// Raw search results avoid upstream 3.1.0's relative-upload-date parser (#392).
+int youtubeDurationMs(String? text) {
+  if (text == null || !RegExp(r'^[0-9]{1,3}(:[0-9]{2}){1,2}$').hasMatch(text)) return 0;
+  var total = 0;
+  for (final field in text.split(':')) { total = total * 60 + int.parse(field); }
+  return total * 1000;
 }

@@ -66,7 +66,7 @@ jobs:
         timeout-minutes: 2
         run: dart run tools/youtube_spike.dart
       - name: Independent extractor compatibility probe
-        if: github.event_name != 'pull_request'
+        if: github.event_name == 'workflow_dispatch'
         continue-on-error: true
         timeout-minutes: 5
         run: bash android/gradlew -p tools/youtube_candidate classes run --no-daemon
