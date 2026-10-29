@@ -219,10 +219,55 @@ void main() {
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
-      await tester.pumpWidget(MaterialApp(theme: dashboardTheme(brightness), home: Scaffold(body: RepaintBoundary(key: const ValueKey('road-signs'), child: Padding(padding: const EdgeInsets.all(16), child: Wrap(spacing: 12, runSpacing: 12, children: [for (final entry in roadKinds.entries) SizedBox(width: 126, child: Column(children: [SignIcon(kind: entry.key, value: entry.key == 'speed' ? 80 : null, size: 72), Text(entry.value, style: const TextStyle(fontSize: 16))])), const SpeedBadge(status: RoadStatus(limit: SpeedLimit(50, 'estimate', estimated: true)))]))))));
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: dashboardTheme(brightness),
+          home: Scaffold(
+            body: RepaintBoundary(
+              key: const ValueKey('road-signs'),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  children: [
+                    for (final entry in roadKinds.entries)
+                      SizedBox(
+                        width: 126,
+                        child: Column(
+                          children: [
+                            SignIcon(
+                              kind: entry.key,
+                              value: entry.key == 'speed' ? 80 : null,
+                              size: 72,
+                            ),
+                            Text(
+                              entry.value,
+                              style: const TextStyle(fontSize: 16),
+                            ),
+                          ],
+                        ),
+                      ),
+                    const SpeedBadge(
+                      status: RoadStatus(
+                        limit: SpeedLimit(50, 'estimate', estimated: true),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
       await tester.pump();
       expect(tester.takeException(), isNull);
-      await expectLater(find.byKey(const ValueKey('road-signs')), matchesGoldenFile('../build/previews/road-signs-${brightness.name}.png'));
+      await expectLater(
+        find.byKey(const ValueKey('road-signs')),
+        matchesGoldenFile(
+          '../build/previews/road-signs-${brightness.name}.png',
+        ),
+      );
     });
   }
   for (var page = 0; page < 3; page++) {

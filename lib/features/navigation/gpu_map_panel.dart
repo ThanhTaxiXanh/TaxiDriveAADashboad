@@ -13,6 +13,7 @@ import 'nav_controller.dart';
 import 'vehicle_marker.dart';
 import '../road_data/road_screen.dart';
 import '../road_data/road_widgets.dart';
+
 import 'package:latlong2/latlong.dart' as geo;
 
 class GpuMapPanel extends StatefulWidget {
@@ -140,7 +141,8 @@ class _GpuMapPanelState extends State<GpuMapPanel> {
 
   void changed() {
     if (!mounted) return;
-    if (roadRevision != nav.road.revision || routeRevision != nav.revision ||
+    if (roadRevision != nav.road.revision ||
+        routeRevision != nav.revision ||
         !identical(lastRoute, nav.route) ||
         goalRevision != nav.goalRevision ||
         lastActive != nav.active)
@@ -298,8 +300,21 @@ class _GpuMapPanelState extends State<GpuMapPanel> {
                               fresh: nav.precise,
                               headingRadians: state.headingRadians ?? 0,
                             ),
-                            onMapLongClick: widget.car ? null : (_, point) => editPinAt(context, nav, geo.LatLng(point.latitude, point.longitude)),
-                            onMapClick: widget.car ? null : (_, point) => editPinAt(context, nav, geo.LatLng(point.latitude, point.longitude), existingOnly: true),
+                            onMapLongClick: widget.car
+                                ? null
+                                : (_, point) => editPinAt(
+                                    context,
+                                    nav,
+                                    geo.LatLng(point.latitude, point.longitude),
+                                  ),
+                            onMapClick: widget.car
+                                ? null
+                                : (_, point) => editPinAt(
+                                    context,
+                                    nav,
+                                    geo.LatLng(point.latitude, point.longitude),
+                                    existingOnly: true,
+                                  ),
                             onMapCreated: (c) {
                               controller = c;
                               unawaited(
@@ -325,7 +340,12 @@ class _GpuMapPanelState extends State<GpuMapPanel> {
                           ),
                   ),
                 ),
-                Positioned(left: 4, right: 68, top: 4, child: RoadWarnings(controller: nav.road)),
+                Positioned(
+                  left: 4,
+                  right: 68,
+                  top: 4,
+                  child: RoadWarnings(controller: nav.road),
+                ),
                 if (loading)
                   const Positioned(
                     top: 0,

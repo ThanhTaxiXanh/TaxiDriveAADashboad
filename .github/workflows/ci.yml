@@ -30,6 +30,8 @@ jobs:
       - run: flutter pub get
       - run: python3 tools/report_dependencies.py
       - name: Check formatting
+        id: formatting
+        continue-on-error: true
         run: |
           if ! dart format --output=none --set-exit-if-changed lib test tools/ui_preview_test.dart; then
             python3 tools/show_format.py
@@ -45,6 +47,9 @@ jobs:
           name: ui-previews
           path: build/previews/*.png
           if-no-files-found: error
+      - name: Require formatted sources
+        if: steps.formatting.outcome != 'success'
+        run: exit 1
       - name: Configure personal signing if available
         if: github.event_name != 'pull_request'
         env:

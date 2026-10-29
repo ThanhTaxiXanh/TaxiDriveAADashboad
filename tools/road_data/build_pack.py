@@ -37,6 +37,7 @@ def sign_types(raw, tags):
     # Observed VN taginfo includes VN:102, VN:401,127[60], P.123a:
     # text, maxspeed, and predominantly 'yes'. Unknowns stay unknown.
     result = []
+    if any('conditional' in k or k == 'opening_hours' for k in tags) or re.search(r'@|conditional|\b\d{1,2}:\d{2}\b',raw or '',re.I): return result
     if raw == 'maxspeed' and speed(tags.get('maxspeed')):
         result.append(('speed', speed(tags['maxspeed'])))
     if raw == 'stop': result.append(('stop', None))
@@ -111,7 +112,7 @@ class Builder:
                 try: facing = float(relative) if relative not in cardinal else cardinal[relative]
                 except ValueError: facing = None
                 if facing is not None and math.isfinite(facing): heading = (facing + 180) % 360
-            for kind,value in sign_types(raw,tags): values.append((kind,value,heading,raw))
+            for kind,value in sign_types(raw,tags): values.append((kind,value,heading,raw,relative=='both'))
         generic = {'speed_camera':'camera','stop':'stop','give_way':'giveWay'}.get(tags.get('highway'))
         if 'traffic_calming' in tags: generic = 'calming'
         if generic:
@@ -119,9 +120,9 @@ class Builder:
             heading = (course + (180 if relative == 'backward' else 0)) % 360 if course is not None and relative in {'forward','backward'} else None
             # Cardinal camera faces are ambiguous for front/rear capture. Do not
             # silently pick a traffic direction without an enforcement relation.
-            values.append((generic,None,heading,''))
-        for kind,value,heading,raw in values:
-            self.add_sign(f'n{ident}:{kind}:{way}:{heading}', point,kind,value,heading,way,along,'OSM' if heading is not None else 'OSM · hướng chưa rõ',raw)
+            values.append((generic,None,heading,'',relative=='both' or generic=='calming'))
+        for kind,value,heading,raw,both in values:
+            self.add_sign(f'n{ident}:{kind}:{way}:{heading}', point,kind,value,heading,way,along,'OSM' if heading is not None else 'OSM · hai chiều' if both else 'OSM · hướng chưa rõ',raw)
     def way(self, ident, refs, points, tags):
         if tags.get('highway') not in DRIVABLE or len(points) < 2: return
         if tags.get('junction') == 'roundabout' and 'oneway' not in tags: tags = {**tags,'oneway':'yes'}

@@ -117,7 +117,15 @@ class _NavigationScreenState extends State<NavigationScreen> {
                   : 'Cho phép vị trí Luôn luôn',
             ),
           ),
-          FilledButton.icon(onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => RoadScreen(navigation: nav))), icon: const Icon(Icons.traffic), label: const Text('Tốc độ và biển báo')),
+          FilledButton.icon(
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => RoadScreen(navigation: nav),
+              ),
+            ),
+            icon: const Icon(Icons.traffic),
+            label: const Text('Tốc độ và biển báo'),
+          ),
           SwitchListTile(
             title: const Text('Bản đồ 3D · nghiêng 60°'),
             subtitle: const Text('Tắt để dùng bản đồ 2D dự phòng'),

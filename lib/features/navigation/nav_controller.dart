@@ -96,7 +96,13 @@ class NavController extends ChangeNotifier {
       };
   void notify() {
     if (!closed) {
-      road.update(fix: running ? fix : null, heading: bearing, headingKnown: _hasBearing, route: active ? route : null, version: '$revision:$goalRevision:$active');
+      road.update(
+        fix: running ? fix : null,
+        heading: bearing,
+        headingKnown: _hasBearing,
+        route: active ? route : null,
+        version: '$revision:$goalRevision:$active',
+      );
       notifyListeners();
     }
   }

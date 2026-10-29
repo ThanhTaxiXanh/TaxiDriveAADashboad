@@ -14,6 +14,8 @@ class PackTest(unittest.TestCase):
         self.assertEqual(sign_types('yes',{}),[])
         self.assertEqual(sign_types('Cấm ô tô rẽ trái từ 6:00AM đến 22:00PM',{}),[])
         self.assertEqual(sign_types('VN:127[60] (wet)',{}),[])
+        self.assertEqual(sign_types('P.123a: No left turn 06:00-22:00',{}),[])
+        self.assertEqual(sign_types('VN:127[60]',{'maxspeed:conditional':'40 @ (wet)'}),[])
         self.assertIsNone(speed('60|80'))
         self.assertIsNone(speed('signals'))
         self.assertEqual(speed('30 mph'),48)
