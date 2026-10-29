@@ -1,10 +1,10 @@
 # Taxi Xanh · Android Auto Dashboard
 
-**Giai đoạn 5 — v0.5.0: tốc độ giới hạn, biển phía trước và ghim riêng.** Thanh xác nhận bản 3D v0.4.1 ổn và yêu cầu tiếp tục. Giữ bản đồ 60°, lịch, QR và vòng đời GPS đã có.
+**Giai đoạn 5 — v0.5.1: tốc độ giới hạn, biển phía trước và ghim riêng.** Bản 0.5.1 sửa nhận diện dải phân cách cứng và bổ sung biểu tượng biển OSM/ghim trực tiếp trên bản đồ 2D/3D. Giữ bản đồ 60°, lịch, QR và vòng đời GPS đã có.
 
 ## Cài và bật vị trí trên điện thoại
 
-1. Cài đè [APK arm64 nightly](https://github.com/ThanhTaxiXanh/TaxiDriveAADashboad/releases/download/nightly/app-arm64-v8a-release.apk) khi Releases ghi **Giai đoạn 5 · v0.5.0**. Không đổi khóa ký hoặc gỡ app.
+1. Cài đè [APK arm64 nightly](https://github.com/ThanhTaxiXanh/TaxiDriveAADashboad/releases/download/nightly/app-arm64-v8a-release.apk) khi Releases ghi **Giai đoạn 5 · v0.5.1**. Không đổi khóa ký hoặc gỡ app.
 2. Mở **Bản đồ và dẫn đường → Bật vị trí** khi app đang mở. Cấp quyền vị trí khi dùng app, bật **Vị trí chính xác**, cho phép thông báo để thấy nút **Dừng vị trí**. Sau đó bấm **Cho phép vị trí Luôn luôn → Mở cài đặt**, vào **Quyền ứng dụng → Vị trí → Luôn cho phép** (Android 13), giữ **Vị trí chính xác**. Đây là quyền riêng, cần anh bật trong cài đặt hệ thống. Dịch vụ foreground tiếp tục GPS khi điện thoại tắt màn hình.
 3. Chờ dòng **GPS chính xác**. Nếu chưa có, bật GPS hệ thống/ra nơi thoáng; mở **Quyền ứng dụng** nếu trước đó từ chối. Giọng đọc cần bộ giọng Việt ngoại tuyến đã cài trong máy; nút **Cài dữ liệu giọng đọc** mở công cụ hệ thống. Thiếu giọng vẫn có chữ chỉ đường.
 4. Nhập tên địa điểm rồi bấm **Tìm địa điểm**, chọn **Dẫn đường**. Có thể nhập `vĩ độ,kinh độ` để bỏ qua tra cứu mạng. Bấm sao để lưu yêu thích. Trên xe chỉ chọn **Yêu thích và gần đây**, không có bàn phím.
@@ -14,8 +14,8 @@
 ## Bật tốc độ và biển báo
 
 1. Mở **Bản đồ và dẫn đường → Tốc độ và biển báo → Tải / cập nhật dữ liệu Việt Nam** bằng Wi-Fi trước chuyến đi. Chờ báo gói sẵn sàng ngoại tuyến; dung lượng thực nằm trong [manifest gói](https://github.com/ThanhTaxiXanh/TaxiDriveAADashboad/releases/download/road-data/manifest.json). Gói riêng, không cần cài lại APK mỗi tháng.
-2. Loại xe mặc định **Ô tô con · VF e34**. Hạn tốc hiện cạnh tốc độ GPS, ghi nguồn **ghim của anh**, **OSM** hoặc **ước tính**. Số nét đứt chỉ là suy đoán, có thể tắt. Chưa đủ dữ liệu/khớp đường/GPS thì hiện **—**, không gán mặc định 120 cho cao tốc.
-3. Biển phía trước có hướng và khoảng cách; tối đa ba mục. Nhãn **Đoạn OSM** là đầu đoạn có dữ liệu tốc độ, không xác nhận vị trí biển thật. Vượt mức + dung sai 5 km/h đổi cam/nhấp nháy; có chỉnh dung sai và bật bíp (mặc định tắt; không bíp mức ước tính).
+2. Loại xe mặc định **Ô tô con · VF e34**. Hạn tốc hiện cạnh tốc độ GPS, ghi nguồn **ghim của anh**, **OSM** hoặc **ước tính**. Số nét đứt chỉ là suy đoán, có thể tắt. Xe con: đường hai chiều có dải phân cách cứng 60/90 (trong/ngoài khu đông dân cư), không có 50/80; đường một chiều ≥2 làn cơ giới cũng nhóm 60/90. Vạch sơn/tổng số làn hai chiều không chứng minh có dải phân cách cứng. Giới hạn cụ thể theo đoạn và chiều được ưu tiên. Chưa đủ dữ liệu/khớp đường/GPS thì hiện **—**, không gán mặc định 120 cho cao tốc.
+3. Biển OSM quanh GPS và ghim riêng hiện trực tiếp bằng biểu tượng trên bản đồ 2D/3D, kể cả lúc đứng yên/chưa dẫn đường. Chạm trên điện thoại để xem nguồn/hướng; ghim riêng có thể sửa. Nhãn **Đoạn** và viền nét đứt chỉ điểm đầu đoạn OSM, không xác nhận biển thật. Biển phía trước có hướng và khoảng cách; tối đa ba mục. Nhãn **Đoạn OSM** là đầu đoạn có dữ liệu tốc độ, không xác nhận vị trí biển thật. Vượt mức + dung sai 5 km/h đổi cam/nhấp nháy; có chỉnh dung sai và bật bíp (mặc định tắt; không bíp mức ước tính).
 4. **Nhấn giữ bản đồ trên điện thoại** để ghim; chạm ghim hoặc mở danh sách để sửa/xóa. Chọn loại biển, tốc độ, hướng xe đi (0° Bắc, 90° Đông) hoặc hai chiều. Ghim hạn tốc áp dụng sau vị trí đó trong phạm vi chọn, mặc định 300 m, ưu tiên hơn OSM. Nên tải gói trước để gắn đúng đoạn đường.
 5. **Xuất ghim JSON** để sao lưu riêng. **Nhập ghim JSON** thay danh sách hiện tại sau khi kiểm tệp. Ghim/vị trí không đưa lên repo, gói công khai hoặc Chia sẻ nhật ký. Trên xe chỉ xem cảnh báo; chỉnh ghim trên điện thoại.
 

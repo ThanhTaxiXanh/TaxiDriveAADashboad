@@ -7,6 +7,7 @@ import 'package:maplibre_flutter_gpu/maplibre_flutter_gpu.dart' as gpu;
 
 import 'follow_camera.dart';
 import 'map_3d_style.dart';
+import 'map_road_sign.dart';
 import 'map_style_client.dart';
 import 'map_widgets.dart';
 import 'nav_controller.dart';
@@ -41,7 +42,7 @@ class _GpuMapPanelState extends State<GpuMapPanel> {
   int token = 0, routeRevision = -1, gesture = 0;
   int? fixTime;
   Object? lastRoute;
-  int goalRevision = -1, roadRevision = -1;
+  int goalRevision = -1;
   bool lastActive = false;
   double viewportHeight = 0;
   Offset? pointerStart;
@@ -123,7 +124,6 @@ class _GpuMapPanelState extends State<GpuMapPanel> {
 
   void rebuildStyle() {
     if (base == null) return;
-    roadRevision = nav.road.revision;
     routeRevision = nav.revision;
     lastRoute = nav.route;
     goalRevision = nav.goalRevision;
@@ -131,7 +131,6 @@ class _GpuMapPanelState extends State<GpuMapPanel> {
     styleString = jsonEncode(
       navigationStyle(
         base!,
-        pins: nav.road.pins,
         route: nav.active ? nav.route : null,
         goal: nav.goal,
         dark: brightness == Brightness.dark,
@@ -141,8 +140,7 @@ class _GpuMapPanelState extends State<GpuMapPanel> {
 
   void changed() {
     if (!mounted) return;
-    if (roadRevision != nav.road.revision ||
-        routeRevision != nav.revision ||
+    if (routeRevision != nav.revision ||
         !identical(lastRoute, nav.route) ||
         goalRevision != nav.goalRevision ||
         lastActive != nav.active)
@@ -300,6 +298,22 @@ class _GpuMapPanelState extends State<GpuMapPanel> {
                               fresh: nav.precise,
                               headingRadians: state.headingRadians ?? 0,
                             ),
+                            overlayBuilder: (_, frame) {
+                              final c = controller;
+                              if (c == null) return null;
+                              return MapSignOverlay(
+                                signs: nav.road.mapSigns,
+                                viewport: frame.logicalSize,
+                                project: (point) => c.toScreenOffset(
+                                  gpu.LatLng(point.latitude, point.longitude),
+                                ),
+                                onTap: widget.car
+                                    ? null
+                                    : (sign) => sign.source == 'user'
+                                        ? editPinAt(context, nav, sign.point)
+                                        : showMapSignDetails(context, sign),
+                              );
+                            },
                             onMapLongClick: widget.car
                                 ? null
                                 : (_, point) => editPinAt(

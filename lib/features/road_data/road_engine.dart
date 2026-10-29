@@ -147,23 +147,35 @@ SpeedLimit resolveLimit(
     'maxspeed:motor_vehicle',
     'maxspeed',
   ];
-  if (tags.keys.any(
-    (key) => prefixes.any(
-      (p) =>
-          key == '$p:conditional' ||
-          key == '$p:$direction:conditional' ||
-          key == '$p:lanes' ||
-          key == '$p:lanes:$direction',
-    ),
-  ))
-    return const SpeedLimit(
-      null,
-      'unknown',
-      reason: 'Hạn tốc theo làn/điều kiện · xem biển',
-    );
   String? raw;
   for (final prefix in prefixes) {
-    raw = tags['$prefix:$direction'] ?? tags[prefix];
+    // OSM specificity: vehicle mode, then direction, then condition. A car
+    // limit can override a general conditional limit, but a lane restriction
+    // for that same mode is unresolved because we do not know the car's lane.
+    final laneKeys = [
+      '$prefix:lanes',
+      '$prefix:lanes:conditional',
+      '$prefix:lanes:$direction',
+      '$prefix:lanes:$direction:conditional',
+      '$prefix:$direction:lanes',
+      '$prefix:$direction:lanes:conditional',
+    ];
+    if (laneKeys.any(tags.containsKey) ||
+        tags.containsKey('$prefix:$direction:conditional'))
+      return const SpeedLimit(
+        null,
+        'unknown',
+        reason: 'Hạn tốc theo làn/điều kiện · xem biển',
+      );
+    raw = tags['$prefix:$direction'];
+    if (raw != null) break;
+    if (tags.containsKey('$prefix:conditional'))
+      return const SpeedLimit(
+        null,
+        'unknown',
+        reason: 'Hạn tốc theo điều kiện · xem biển',
+      );
+    raw = tags[prefix];
     if (raw != null) break;
   }
   final explicit = parseMaxspeed(raw);
@@ -190,7 +202,14 @@ SpeedLimit resolveLimit(
   );
   final divided =
       tags['dual_carriageway'] == 'yes' ||
+      {'barrier', 'kerb'}.contains(tags['divider']) ||
       match.edge.oneWay != 0 && lanes != null && lanes >= 2;
+  // A solid/double painted line or the total lanes of a two-way street is
+  // not evidence of physical separation between opposing directions.
+  final area = urban ? 'trong khu đông dân cư' : 'ngoài khu đông dân cư';
+  final roadClass = divided
+      ? 'đường có dải phân cách hoặc một chiều ≥2 làn xe cơ giới'
+      : 'chưa xác nhận dải phân cách / một chiều ≥2 làn xe cơ giới';
   final value = legalEstimate(
     vehicle,
     urban: urban,
@@ -203,7 +222,7 @@ SpeedLimit resolveLimit(
     estimated: value != null,
     reason: value == null
         ? 'Cao tốc · xem biển thực tế'
-        : 'Ước tính loại đường và vùng dân cư · TT38/2024',
+        : 'Ước tính $area · $roadClass · TT38/2024',
   );
 }
 

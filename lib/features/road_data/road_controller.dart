@@ -53,6 +53,25 @@ class RoadController extends ChangeNotifier {
   int lastBeep = 0, dataEpoch = 0;
   Object? evaluationKey;
   bool get enabled => settings['enabled'] != false;
+  List<RoadSign>? _mapPins;
+  RoadNearby? _mapNearby;
+  List<RoadSign> _mapSigns = const [];
+
+  // Map browsing is independent of heading and route-based warning eligibility.
+  // Cache the merge: the GPU overlay can read it once per rendered frame.
+  List<RoadSign> get mapSigns {
+    if (!enabled) return const [];
+    if (!identical(_mapPins, pins) || !identical(_mapNearby, nearby)) {
+      _mapPins = pins;
+      _mapNearby = nearby;
+      _mapSigns = List.unmodifiable({
+        for (final sign in nearby.signs) sign.id: sign,
+        for (final pin in pins) pin.id: pin,
+      }.values);
+    }
+    return _mapSigns;
+  }
+
   void notify() {
     if (!closed) notifyListeners();
   }

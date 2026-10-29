@@ -210,6 +210,159 @@ void main() {
     expect(parseMaxspeed('60;80'), isNull);
     expect(parseMaxspeed('signals'), isNull);
   });
+  test('Car estimates distinguish a physical divider from paint and two-way lane counts', () {
+    const position = LatLng(21.285, 106.194);
+    SpeedLimit evaluate(Map<String, String> tags, {required bool urban}) =>
+        resolveLimit(
+          matchRoad(
+            [RoadEdge(200, fixture.roads.first.geometry, {
+              'highway': 'primary',
+              ...tags,
+            })],
+            position,
+            0,
+          ),
+          pins: [],
+          position: position,
+          heading: 0,
+          urbanHint: urban,
+        );
+    for (final urban in [true, false]) {
+      for (final tags in [
+        {'dual_carriageway': 'yes'},
+        {'divider': 'barrier'},
+        {'divider': 'kerb', 'lanes': '2'},
+        {'oneway': 'yes', 'lanes:motor_vehicle': '2'},
+      ]) {
+        final limit = evaluate(tags, urban: urban);
+        expect(limit.value, urban ? 60 : 90, reason: '$tags, urban=$urban');
+        expect(limit.estimated, true);
+        expect(limit.reason, contains(urban ? 'trong khu' : 'ngoài khu'));
+      }
+      for (final tags in [
+        <String, String>{},
+        {'lanes': '4', 'lanes:forward': '2', 'lanes:backward': '2'},
+        {'divider': 'solid_line', 'lanes': '4'},
+        {'divider': 'double_solid_line'},
+        {'divider': 'solid_area'},
+        {'divider': 'yes'},
+        {'oneway': 'yes', 'lanes': '1'},
+        {'oneway': 'yes', 'lanes': '2', 'lanes:motor_vehicle': '1'},
+      ]) {
+        expect(
+          evaluate(tags, urban: urban).value,
+          urban ? 50 : 80,
+          reason: '$tags, urban=$urban',
+        );
+      }
+      final posted = evaluate({
+        'divider': 'barrier',
+        'maxspeed': '40',
+      }, urban: urban);
+      expect(posted.value, 40);
+      expect(posted.source, 'osm');
+      expect(posted.estimated, false);
+    }
+  });
+  test('Applicable vehicle and direction take precedence over broader conditional limits', () {
+    const position = LatLng(21.285, 106.194);
+    SpeedLimit evaluate(Map<String, String> tags, {double heading = 0}) =>
+        resolveLimit(
+          matchRoad(
+            [RoadEdge(200, fixture.roads.first.geometry, {
+              'highway': 'primary',
+              ...tags,
+            })],
+            position,
+            heading,
+          ),
+          pins: [],
+          position: position,
+          heading: heading,
+          urbanHint: true,
+        );
+    expect(evaluate({
+      'maxspeed:motorcar': '60',
+      'maxspeed:conditional': '40 @ (wet)',
+    }).value, 60);
+    expect(evaluate({
+      'maxspeed:forward': '60',
+      'maxspeed:conditional': '40 @ (wet)',
+    }).value, 60);
+    expect(evaluate({
+      'maxspeed': '60',
+      'maxspeed:backward:conditional': '40 @ (wet)',
+    }).value, 60);
+    expect(evaluate({
+      'maxspeed': '60',
+      'maxspeed:backward:conditional': '40 @ (wet)',
+    }, heading: 180).value, isNull);
+    expect(evaluate({
+      'maxspeed:motorcar': '60',
+      'maxspeed:motorcar:conditional': '40 @ (wet)',
+    }).value, isNull);
+    expect(evaluate({
+      'maxspeed:motorcar:forward': '60',
+      'maxspeed:motorcar:lanes:forward:conditional': '40|60 @ (wet)',
+    }).value, isNull);
+    expect(evaluate({
+      'maxspeed:motorcar:forward': '60',
+      'maxspeed:lanes:forward': '40|60',
+    }).value, 60);
+  });
+  test('Posted limits change with road segment and the nearest passed pin has bounded scope', () {
+    const start = LatLng(21.281, 106.194);
+    const boundary = LatLng(21.286, 106.194);
+    const end = LatLng(21.291, 106.194);
+    final roads = [
+      RoadEdge(100, NavRoute([start, boundary], [], 0, 'before'), {
+        'highway': 'primary',
+        'divider': 'barrier',
+        'maxspeed': '60',
+        'maxspeed:backward': '50',
+      }),
+      RoadEdge(200, NavRoute([boundary, end], [], 0, 'after'), {
+        'highway': 'primary',
+        'divider': 'barrier',
+        'maxspeed': '40',
+        'maxspeed:backward': '30',
+      }),
+    ];
+    RoadSign pin(String id, double lat, int value, {int way = 100, double scope = 300}) => RoadSign(
+      id: id,
+      point: LatLng(lat, 106.194),
+      kind: 'speed',
+      value: value,
+      bearing: 0,
+      way: way,
+      along: meters(way == 100 ? start : boundary, LatLng(lat, 106.194)),
+      scope: scope,
+    );
+    final pins = [
+      pin('user_old', 21.284, 30),
+      pin('user_near', 21.2848, 20, scope: 50),
+      pin('user_ahead', 21.2858, 10),
+      pin('user_other_road', 21.2849, 10, way: 999),
+    ];
+    SpeedLimit evaluate(double lat, {double heading = 0, bool withPins = false}) {
+      final point = LatLng(lat, 106.194);
+      return resolveLimit(
+        matchRoad(roads, point, heading),
+        pins: withPins ? pins : [],
+        position: point,
+        heading: heading,
+        urbanHint: false,
+      );
+    }
+    expect(evaluate(21.285).value, 60);
+    expect(evaluate(21.287).value, 40);
+    expect(evaluate(21.287, heading: 180).value, 30);
+    expect(evaluate(21.285, withPins: true).value, 20);
+    expect(evaluate(21.2854, withPins: true).value, 30);
+    expect(evaluate(21.285, heading: 180, withPins: true).value, 50);
+    expect(evaluate(21.287, withPins: true).value, 40);
+    expect(evaluate(21.29, withPins: true).source, 'osm');
+  });
   test('GPX replay: along-route distances, turn directions, pass hysteresis and stale GPS', () {
     final engine = RoadEngine();
     final points =

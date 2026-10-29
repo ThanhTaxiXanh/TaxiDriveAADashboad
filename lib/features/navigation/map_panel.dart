@@ -14,7 +14,7 @@ import 'map_style_client.dart';
 import 'gpu_map_panel.dart';
 import '../road_data/road_screen.dart';
 import '../road_data/road_widgets.dart';
-import '../road_data/sign_painter.dart';
+import 'map_road_sign.dart';
 export 'map_widgets.dart';
 
 class MapPanel extends StatefulWidget {
@@ -273,21 +273,19 @@ class _FlatMapPanelState extends State<FlatMapPanel> {
                     ),
                   MarkerLayer(
                     markers: [
-                      for (final pin in nav.road.pins)
+                      for (final group in groupMapSigns(nav.road.mapSigns))
                         Marker(
-                          point: pin.point,
-                          width: 36,
-                          height: 36,
+                          point: group.point,
+                          width: group.width,
+                          height: mapSignHeight,
                           rotate: true,
-                          child: GestureDetector(
+                          child: MapRoadSignGroup(
+                            group: group,
                             onTap: widget.car
                                 ? null
-                                : () => editPinAt(context, nav, pin.point),
-                            child: SignIcon(
-                              kind: pin.kind,
-                              value: pin.value,
-                              size: 36,
-                            ),
+                                : (sign) => sign.source == 'user'
+                                    ? editPinAt(context, nav, sign.point)
+                                    : showMapSignDetails(context, sign),
                           ),
                         ),
                       if (nav.goal != null)

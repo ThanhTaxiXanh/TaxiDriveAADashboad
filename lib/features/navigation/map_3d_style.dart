@@ -1,11 +1,9 @@
 import 'dart:convert';
 
 import 'nav_models.dart';
-import '../road_data/road_models.dart';
 
 Map<String, dynamic> navigationStyle(
   Map<String, dynamic> base, {
-  List<RoadSign> pins = const [],
   NavRoute? route,
   Place? goal,
   required bool dark,
@@ -81,35 +79,7 @@ Map<String, dynamic> navigationStyle(
       'type': 'FeatureCollection',
       'features': <dynamic>[],
     };
-  sources['taxi-pins'] = {
-    'type': 'geojson',
-    'data': {
-      'type': 'FeatureCollection',
-      'features': [
-        for (final pin in pins)
-          {
-            'type': 'Feature',
-            'properties': {'id': pin.id},
-            'geometry': {
-              'type': 'Point',
-              'coordinates': [pin.point.longitude, pin.point.latitude],
-            },
-          },
-      ],
-    },
-  };
   final added = <Map<String, dynamic>>[
-    {
-      'id': 'taxi-pin-dot',
-      'type': 'circle',
-      'source': 'taxi-pins',
-      'paint': {
-        'circle-radius': 7,
-        'circle-color': '#ed4545',
-        'circle-stroke-color': '#ffffff',
-        'circle-stroke-width': 3,
-      },
-    },
     {
       'id': 'taxi-route-casing',
       'type': 'line',
