@@ -6,9 +6,10 @@ import 'media_controller.dart';
 import 'media_models.dart';
 
 class MediaPanel extends StatelessWidget {
-  const MediaPanel({super.key, this.controller, this.onOpen});
+  const MediaPanel({super.key, this.controller, this.onOpen, this.fontScale = 1});
   final MediaController? controller;
   final VoidCallback? onOpen;
+  final double fontScale;
   @override
   Widget build(BuildContext context) => controller == null
       ? content(context, const MediaSnapshot())
@@ -18,8 +19,15 @@ class MediaPanel extends StatelessWidget {
         );
   Widget content(BuildContext context, MediaSnapshot state) => LayoutBuilder(
     builder: (context, bounds) {
-      final tall = bounds.maxHeight >= 150;
-      final title = bounds.maxHeight >= 82;
+      final factor = fontScale.clamp(.8, 1.6);
+      final titleSize = (18 * factor).clamp(16.0, 28.8);
+      final artistSize = (16 * factor).clamp(16.0, 25.6);
+      final scaler = MediaQuery.textScalerOf(context);
+      final titleHeight = scaler.scale(titleSize) * 1.2;
+      final artistHeight = scaler.scale(artistSize) * 1.2;
+      final title = bounds.maxHeight >= 8 + 52 + titleHeight;
+      final tall = bounds.maxHeight >=
+          12 + 52 + titleHeight + artistHeight + 24 + scaler.scale(16) * 1.5;
       final art = tall && bounds.maxHeight >= 230 ? state.artwork : null;
       return Padding(
         padding: const EdgeInsets.all(4),
@@ -51,10 +59,7 @@ class MediaPanel extends StatelessWidget {
                             state.displayTitle,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                            ),
+                            style: TextStyle(fontSize: titleSize, height: 1.2, fontWeight: FontWeight.w600),
                           ),
                           if (tall)
                             Text(
@@ -63,7 +68,7 @@ class MediaPanel extends StatelessWidget {
                                   : state.displayArtist,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(fontSize: 16),
+                              style: TextStyle(fontSize: artistSize, height: 1.2),
                             ),
                         ],
                       ),

@@ -195,7 +195,8 @@ void main() {
     },
   );
   for (final height in [64.0, 110.0, 180.0, 260.0]) {
-    testWidgets('Media row fits 194 px width and height $height', (
+    for (final scale in [1.0,1.6]) {
+    testWidgets('Media row fits 194 px width and height $height at scale $scale', (
       tester,
     ) async {
       final controller = MediaController(connected: false);
@@ -218,7 +219,7 @@ void main() {
               child: SizedBox(
                 width: 194,
                 height: height,
-                child: MediaPanel(controller: controller),
+                child: MediaPanel(controller: controller, fontScale: scale),
               ),
             ),
           ),
@@ -230,6 +231,7 @@ void main() {
       expect(find.byTooltip('Bài tiếp'), findsOneWidget);
       await tester.pumpWidget(const SizedBox());
     });
+  }
   }
   testWidgets(
     'Moving/stale GPS keeps video texture absent and car has no search field',
