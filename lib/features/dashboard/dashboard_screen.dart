@@ -18,6 +18,9 @@ import '../payment/payment_config.dart';
 import '../payment/payment_panel.dart';
 import '../navigation/nav_controller.dart';
 import '../navigation/map_panel.dart';
+import '../media/media_controller.dart';
+import '../media/media_panel.dart';
+import '../media/media_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({
@@ -27,12 +30,14 @@ class DashboardScreen extends StatefulWidget {
     this.calendar,
     this.payment,
     this.navigation,
+    this.media,
   });
   final DashboardController controller;
   final bool car;
   final CalendarStore? calendar;
   final PaymentStore? payment;
   final NavController? navigation;
+  final MediaController? media;
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
@@ -96,26 +101,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
         padding: padding,
         child: switch (controller.panel) {
           'settings' => LayoutSettings(controller: controller, car: widget.car),
-          'youtube' => Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.play_circle_outline, size: 56),
-                const Text(
-                  'YouTube · Giai đoạn 6',
-                  style: TextStyle(fontSize: 22),
-                ),
-                const Text(
-                  'Chưa có chức năng phát nhạc hoặc video',
-                  style: TextStyle(fontSize: 16),
-                ),
-                TextButton(
-                  onPressed: () => controller.showPanel('dashboard'),
-                  child: const Text('Về bảng điều khiển'),
-                ),
-              ],
-            ),
-          ),
           'modules' => ListView(
             padding: const EdgeInsets.all(24),
             children: [
@@ -150,6 +135,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
             payment: widget.payment?.config ?? const PaymentConfig(),
             events: widget.calendar?.events ?? const [],
             showMonthly: widget.calendar?.showMonthly ?? false,
+            media: widget.media,
+            rightPanel: controller.panel == 'youtube' && widget.media != null
+                ? YoutubePanel(
+                    controller: widget.media!,
+                    car: widget.car,
+                    navigation: widget.navigation,
+                    onClose: () => controller.showPanel('dashboard'),
+                  )
+                : null,
           ),
         },
       ),
@@ -195,6 +189,8 @@ class DashboardFrame extends StatefulWidget {
     this.today,
     this.payment = const PaymentConfig(),
     this.map,
+    this.media,
+    this.rightPanel,
   });
   final LayoutConfig config;
   final List<EventItem> events;
@@ -202,6 +198,8 @@ class DashboardFrame extends StatefulWidget {
   final DateTime? today;
   final PaymentConfig payment;
   final Widget? map;
+  final MediaController? media;
+  final Widget? rightPanel;
   @override
   State<DashboardFrame> createState() => _DashboardFrameState();
 }
@@ -247,24 +245,13 @@ class _DashboardFrameState extends State<DashboardFrame> {
       for (var i = 0; i < 3; i++)
         if (config.rowEnabled[i]) i,
     ];
-    final titles = ['Lịch Âm/Dương', 'QR thanh toán', 'Media'];
-    final captions = [
-      'Lịch và sự kiện · Giai đoạn 2',
-      'Chưa có mã thanh toán · Giai đoạn 3',
-      'Chưa kết nối trình phát · Giai đoạn 6',
-    ];
-    final icons = [Icons.calendar_month, Icons.qr_code_2, Icons.music_note];
     return Padding(
       padding: const EdgeInsets.all(8),
       child: LayoutBuilder(
         builder: (context, size) {
-          final available = math.max(
-            0.0,
-            size.maxWidth - (enabled.isEmpty ? 0 : 8),
-          );
-          final left = enabled.isEmpty
-              ? available
-              : available * config.leftFraction;
+          final showRight = enabled.isNotEmpty || widget.rightPanel != null;
+          final available = math.max(0.0, size.maxWidth - (showRight ? 8 : 0));
+          final left = showRight ? available * config.leftFraction : available;
           return Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -357,10 +344,12 @@ class _DashboardFrameState extends State<DashboardFrame> {
                       ),
                 ),
               ),
-              if (enabled.isNotEmpty) ...[
+              if (showRight) ...[
                 const SizedBox(width: 8),
                 Expanded(
-                  child: expandedPayment && config.rowEnabled[1]
+                  child: widget.rightPanel != null
+                      ? widget.rightPanel!
+                      : expandedPayment && config.rowEnabled[1]
                       ? Card(
                           margin: EdgeInsets.zero,
                           clipBehavior: Clip.antiAlias,
@@ -415,76 +404,9 @@ class _DashboardFrameState extends State<DashboardFrame> {
                                             fontScale: config.fontScale,
                                             onTap: togglePayment,
                                           )
-                                        : LayoutBuilder(
-                                            builder: (context, cell) => Padding(
-                                              padding: const EdgeInsets.all(12),
-                                              child: Column(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  if (cell.maxHeight > 300)
-                                                    Icon(
-                                                      icons[i],
-                                                      size: 40,
-                                                      color: Theme.of(context)
-                                                          .colorScheme
-                                                          .primary,
-                                                    ),
-                                                  Text(
-                                                    titles[i],
-                                                    maxLines: 1,
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                    style: TextStyle(
-                                                      fontSize: math.min(
-                                                        math.max(
-                                                          22,
-                                                          24 * config.fontScale,
-                                                        ),
-                                                        math.max(
-                                                          22,
-                                                          (cell.maxHeight -
-                                                                  24) /
-                                                              1.5,
-                                                        ),
-                                                      ),
-                                                      fontWeight:
-                                                          FontWeight.w600,
-                                                    ),
-                                                  ),
-                                                  if (cell.maxHeight >
-                                                      24 +
-                                                          math.max(
-                                                                22,
-                                                                24 *
-                                                                    config
-                                                                        .fontScale,
-                                                              ) *
-                                                              1.5 +
-                                                          math.max(
-                                                                16,
-                                                                18 *
-                                                                    config
-                                                                        .fontScale,
-                                                              ) *
-                                                              3)
-                                                    Text(
-                                                      captions[i],
-                                                      maxLines: 2,
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                      style: TextStyle(
-                                                        fontSize: math.max(
-                                                          16,
-                                                          18 * config.fontScale,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                ],
-                                              ),
-                                            ),
+                                        : MediaPanel(
+                                            controller: widget.media,
+                                            fontScale: config.fontScale,
                                           ),
                                   ),
                                 ),

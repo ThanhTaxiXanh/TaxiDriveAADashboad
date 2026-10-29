@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'car_main.dart';
+import 'features/media/media_controller.dart';
+import 'features/media/media_screen.dart';
 import 'core/third_party_licenses.dart';
 import 'core/car_bridge.dart';
 import 'features/navigation/nav_controller.dart';
@@ -27,6 +29,12 @@ void main() {
 @pragma('vm:entry-point')
 void carMain() => startCar();
 
+@pragma('vm:entry-point')
+void mediaMain() {
+  WidgetsFlutterBinding.ensureInitialized();
+  startMediaResolver();
+}
+
 class DashboardApp extends StatefulWidget {
   const DashboardApp({super.key, this.car = false});
   final bool car;
@@ -44,6 +52,7 @@ class _DashboardAppState extends State<DashboardApp> {
   final controller = DashboardController();
   final calendar = CalendarStore();
   late final navigation = NavController(car: widget.car);
+  late final media = MediaController(car: widget.car);
   late final payment = PaymentStore(phone: !widget.car);
   @override
   void dispose() {
@@ -51,6 +60,7 @@ class _DashboardAppState extends State<DashboardApp> {
     calendar.dispose();
     payment.dispose();
     navigation.dispose();
+    media.dispose();
     super.dispose();
   }
 
@@ -82,12 +92,14 @@ class _DashboardAppState extends State<DashboardApp> {
                 calendar: calendar,
                 payment: payment,
                 navigation: navigation,
+                media: media,
               )
             : DiagnosticsScreen(
                 controller: controller,
                 calendar: calendar,
                 payment: payment,
                 navigation: navigation,
+                media: media,
               ),
       );
     },
@@ -101,11 +113,13 @@ class DiagnosticsScreen extends StatefulWidget {
     required this.calendar,
     required this.payment,
     required this.navigation,
+    required this.media,
   });
   final DashboardController controller;
   final CalendarStore calendar;
   final PaymentStore payment;
   final NavController navigation;
+  final MediaController media;
   @override
   State<DiagnosticsScreen> createState() => _DiagnosticsScreenState();
 }
@@ -126,7 +140,7 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
           padding: const EdgeInsets.all(20),
           children: [
             const Text(
-              'Giai đoạn 5 · Tốc độ và biển báo v0.5.1',
+              'Giai đoạn 6 · Nhạc và YouTube v0.6.0',
               style: TextStyle(fontSize: 22),
             ),
             const SizedBox(height: 16),
@@ -178,6 +192,18 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
               icon: const Icon(Icons.navigation),
               label: const Text('Bản đồ và dẫn đường'),
             ),
+            FilledButton.icon(
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => MediaScreen(
+                    controller: widget.media,
+                    navigation: widget.navigation,
+                  ),
+                ),
+              ),
+              icon: const Icon(Icons.library_music),
+              label: const Text('Nhạc và YouTube'),
+            ),
             ListenableBuilder(
               listenable: widget.payment,
               builder: (context, _) => FilledButton.icon(
@@ -200,6 +226,7 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
                     calendar: widget.calendar,
                     payment: widget.payment,
                     navigation: widget.navigation,
+                    media: widget.media,
                   ),
                 ),
               ),
@@ -230,7 +257,7 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
             ),
             const SizedBox(height: 16),
             const Text(
-              'Đã có lịch, sự kiện, QR và bản đồ dẫn đường. Media sẽ có ở Giai đoạn 6. '
+              'Đã có lịch, QR, bản đồ, tốc độ/biển báo và Media/YouTube. '
               'Thanh đã nghiệm thu Giai đoạn 2 ổn định trên VF e34.',
             ),
           ],

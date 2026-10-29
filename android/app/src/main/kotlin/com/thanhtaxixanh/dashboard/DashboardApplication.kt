@@ -10,6 +10,7 @@ import io.flutter.embedding.engine.dart.DartExecutor
 
 class DashboardApplication : Application() {
     val roads by lazy { RoadStorage(this) }
+    val media by lazy { MediaState(this) }
     lateinit var engines: FlutterEngineGroup
     lateinit var diagnostics: Diagnostics
     lateinit var navigation: NavigationState
@@ -35,6 +36,6 @@ class DashboardApplication : Application() {
         loader.ensureInitializationComplete(this, null)
         return engines.createAndRunEngine(
             this, DartExecutor.DartEntrypoint(loader.findAppBundlePath(), entrypoint)
-        )
+        ).also { it.plugins.add(MediaBridge(this, entrypoint == "carMain", entrypoint == "mediaMain")) }
     }
 }

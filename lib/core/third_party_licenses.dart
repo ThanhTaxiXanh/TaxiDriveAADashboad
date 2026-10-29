@@ -16,5 +16,14 @@ void registerNativeMapLicenses() {
       'assets/licenses/ANDROIDX_SQLITE_LICENSE.txt',
     );
     yield LicenseEntryWithLineBreaks(['AndroidX SQLite (bundled)'], sqlite);
+    yield LicenseEntryWithLineBreaks(
+      ['youtube_explode_dart'],
+      await rootBundle.loadString(
+        'assets/licenses/YOUTUBE_EXPLODE_LICENSE.txt',
+      ),
+    );
+    yield LicenseEntryWithLineBreaks([
+      'AndroidX Media3',
+    ], await rootBundle.loadString('assets/licenses/MEDIA3_NOTICES.txt'));
   });
 }

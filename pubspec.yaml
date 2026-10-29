@@ -1,7 +1,7 @@
 name: taxi_driver_aa_dashboard
 description: Thử nghiệm Flutter trực tiếp trên bề mặt Android Auto.
 publish_to: none
-version: 0.5.1+1
+version: 0.6.0+1
 environment:
   sdk: '>=3.13.0 <4.0.0'
 dependencies:
@@ -16,6 +16,7 @@ dependencies:
   zxing2: 0.2.4
   image: ^4.5.4
   image_picker: 1.2.4
+  youtube_explode_dart: 3.1.0
   flutter_localizations:
     sdk: flutter
 dev_dependencies:
@@ -24,6 +25,8 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
+    - assets/licenses/MEDIA3_NOTICES.txt
+    - assets/licenses/YOUTUBE_EXPLODE_LICENSE.txt
     - assets/licenses/ANDROIDX_SQLITE_LICENSE.txt
     - assets/licenses/MAPLIBRE_NATIVE_NOTICES.md
     - assets/fonts/OFL.txt
