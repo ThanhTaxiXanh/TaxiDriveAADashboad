@@ -137,7 +137,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
             showMonthly: widget.calendar?.showMonthly ?? false,
             media: widget.media,
             rightPanel: controller.panel == 'youtube' && widget.media != null
-                ? YoutubePanel(controller: widget.media!, car: widget.car, navigation: widget.navigation, onClose: () => controller.showPanel('dashboard'))
+                ? YoutubePanel(
+                    controller: widget.media!,
+                    car: widget.car,
+                    navigation: widget.navigation,
+                    onClose: () => controller.showPanel('dashboard'),
+                  )
                 : null,
           ),
         },
@@ -245,10 +250,7 @@ class _DashboardFrameState extends State<DashboardFrame> {
       child: LayoutBuilder(
         builder: (context, size) {
           final showRight = enabled.isNotEmpty || widget.rightPanel != null;
-          final available = math.max(
-            0.0,
-            size.maxWidth - (showRight ? 8 : 0),
-          );
+          final available = math.max(0.0, size.maxWidth - (showRight ? 8 : 0));
           final left = showRight ? available * config.leftFraction : available;
           return Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,

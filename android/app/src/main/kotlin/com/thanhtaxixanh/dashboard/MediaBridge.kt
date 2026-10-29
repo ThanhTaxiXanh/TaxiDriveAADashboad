@@ -54,11 +54,11 @@ class MediaBridge(private val app: DashboardApplication, private val car: Boolea
                         if (producer==null) {
                             val created=binding.textureRegistry.createSurfaceProducer(); producer=created; created.setSize(1280,720)
                             created.setCallback(object : TextureRegistry.SurfaceProducer.Callback {
-                                override fun onSurfaceAvailable() { state.attachSurface(this@MediaBridge,car) { producer?.surface } }
+                                override fun onSurfaceAvailable() { attachVideoSurface() }
                                 override fun onSurfaceCleanup() { state.removeSurface(this@MediaBridge) }
                             })
                         }
-                        state.attachSurface(this,car) { producer?.surface }
+                        attachVideoSurface()
                         result.success(producer!!.id())
                     }
                     "releaseTexture" -> { if (call.argument<String>("lease")==textureLease) releaseTexture(); result.success(null) }
@@ -67,6 +67,7 @@ class MediaBridge(private val app: DashboardApplication, private val car: Boolea
             } catch (_: Exception) { result.error("MEDIA","Không thực hiện được. Kiểm tra quyền hoặc chọn lại bài",null) }
         }
     }
+    private fun attachVideoSurface() { state.attachSurface(this,car,{ producer?.surface },{ width,height -> producer?.setSize(width,height) }) }
     private fun releaseTexture() { state.removeSurface(this); producer?.setCallback(null); producer?.release(); producer=null }
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         state.remove(sink); sink=null; releaseTexture(); methods.setMethodCallHandler(null); events.setStreamHandler(null)

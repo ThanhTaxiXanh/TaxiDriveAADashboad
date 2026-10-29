@@ -56,9 +56,6 @@ jobs:
           name: ui-previews
           path: build/previews/*.png
           if-no-files-found: error
-      - name: Require formatted sources
-        if: steps.formatting.outcome != 'success'
-        run: exit 1
       - name: Configure personal signing if available
         if: github.event_name != 'pull_request'
         env:
@@ -70,6 +67,9 @@ jobs:
         run: python3 tools/configure_signing.py
       - name: Build diagnostic APK
         run: flutter build apk --debug --build-number=${{ github.run_number }}
+      - name: Require formatted sources
+        if: steps.formatting.outcome != 'success'
+        run: exit 1
       - name: Build signed release APKs
         if: env.HAS_SIGNING == 'true'
         run: flutter build apk --release --split-per-abi --build-number=${{ github.run_number }}

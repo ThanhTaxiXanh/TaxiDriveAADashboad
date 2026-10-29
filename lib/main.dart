@@ -193,7 +193,14 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
               label: const Text('Bản đồ và dẫn đường'),
             ),
             FilledButton.icon(
-              onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => MediaScreen(controller: widget.media, navigation: widget.navigation))),
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => MediaScreen(
+                    controller: widget.media,
+                    navigation: widget.navigation,
+                  ),
+                ),
+              ),
               icon: const Icon(Icons.library_music),
               label: const Text('Nhạc và YouTube'),
             ),

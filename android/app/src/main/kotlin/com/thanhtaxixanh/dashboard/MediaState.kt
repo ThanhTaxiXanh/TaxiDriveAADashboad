@@ -57,10 +57,13 @@ class MediaState(private val app: DashboardApplication) {
     private var lastAudio: String? = null
     private var visibleVideo = false
     private var lastCarConnection = false
-    private var startedAt = 0L
+    private var playedMs = 0L
+    private var lastPlayingAt = SystemClock.elapsedRealtime()
+    private var wasPlaying = false
     private var surfaceOwner: Any? = null
     private var surface: (() -> Surface?)? = null
     private var surfaceCar = false
+    private var resizeSurface: ((Int,Int)->Unit)? = null
     private var width = 1280
     private var height = 720
     var message = "Chọn ứng dụng nhạc hoặc danh sách YouTube"
@@ -68,7 +71,7 @@ class MediaState(private val app: DashboardApplication) {
     private var ticking = false
     private val tick = object : Runnable {
         override fun run() {
-            updateVideo(); emit()
+            samplePlayTime(); updateVideo(); emit()
             if (ticking) handler.postDelayed(this, 1000)
         }
     }
@@ -83,6 +86,11 @@ class MediaState(private val app: DashboardApplication) {
         return MediaPolicy.videoAllowed(nav.running, SystemClock.elapsedRealtime() - fix.elapsedRealtimeNanos / 1000000,
             fix.accuracy.toDouble(), if (fix.hasSpeed()) fix.speed * 3.6 else -1.0)
     }
+    private fun samplePlayTime() {
+        val now=SystemClock.elapsedRealtime()
+        if (wasPlaying) playedMs+=(now-lastPlayingAt).coerceAtLeast(0)
+        lastPlayingAt=now; wasPlaying=player?.isPlaying==true
+    }
     fun snapshot(full: Boolean = true): String = JSONObject().put("source",source).put("external",external.snapshot())
         .also { if (full) it.put("library",library).put("recent",recent) }.put("queueCount",queue.length()).put("index",index)
         .put("revision",revision).put("request",if (pending) JSONObject().put("token",requestToken).put("entry",current()) else JSONObject.NULL)
@@ -94,7 +102,7 @@ class MediaState(private val app: DashboardApplication) {
         .put("duration",(player?.duration ?: 0).coerceAtLeast(0)).put("message",message)
         .put("videoRequested",videoRequested).put("videoSafe",videoSafe()).put("videoVisible",visibleVideo)
         .put("hasVideo",hasVideo).put("videoAspect",width.toDouble()/height.coerceAtLeast(1))
-        .put("carConnected",app.navigation.carConnected).put("playedMs",if (startedAt > 0) SystemClock.elapsedRealtime()-startedAt else 0).toString()
+        .put("carConnected",app.navigation.carConnected).put("playedMs",playedMs).toString()
 
     private fun entry(input: JSONObject): JSONObject {
         val id = input.getString("id"); require(id.matches(Regex("[A-Za-z0-9_-]{11}")))
@@ -134,7 +142,7 @@ class MediaState(private val app: DashboardApplication) {
     }
     fun play(input: JSONArray, offset: Int) {
         val next=entries(input); require(offset in 0 until next.length())
-        queue=next; index=offset; source="youtube"; wantedPlaying=true; videoRequested=false; startedAt=SystemClock.elapsedRealtime(); persist()
+        queue=next; index=offset; source="youtube"; wantedPlaying=true; videoRequested=false; playedMs=0; wasPlaying=false; lastPlayingAt=SystemClock.elapsedRealtime(); persist()
         if (startService()) request()
     }
     private fun startService(): Boolean {
@@ -145,7 +153,7 @@ class MediaState(private val app: DashboardApplication) {
     fun attach(service: PlaybackService, next: ExoPlayer) {
         this.service=service; player=next; ensureTick()
         next.addListener(object : Player.Listener {
-            override fun onEvents(player: Player, events: Player.Events) { updateVideo(); emit() }
+            override fun onEvents(player: Player, events: Player.Events) { samplePlayTime(); updateVideo(); emit() }
             override fun onPlaybackStateChanged(state: Int) {
                 if (state==Player.STATE_ENDED && wantedPlaying && !pending) {
                     if (index+1<queue.length()) skip(1) else { wantedPlaying=false; message="Đã phát hết danh sách"; emit() }
@@ -160,14 +168,14 @@ class MediaState(private val app: DashboardApplication) {
                 } else { wantedPlaying=false; pending=false; message="Không phát được luồng này. Kiểm tra mạng hoặc chọn bài khác"; emit() }
             }
             override fun onVideoSizeChanged(size: VideoSize) {
-                if (size.width>0 && size.height>0) { width=size.width; height=size.height; emit() }
+                if (size.width>0 && size.height>0) { width=size.width; height=size.height; resizeSurface?.invoke(width,height); updateVideo(); emit() }
             }
         })
         if (resolver==null) resolver=app.engine("mediaMain")
         emit()
     }
     fun detach() {
-        service=null; player=null; pending=false; wantedPlaying=false; revision++; visibleVideo=false
+        samplePlayTime(); wasPlaying=false; service=null; player=null; pending=false; wantedPlaying=false; revision++; visibleVideo=false
         val old=resolver; resolver=null; handler.post { old?.destroy() }; stopTickIfIdle(); emit()
     }
     private fun request(keepRetry: Boolean = false, keepPosition: Boolean = false) {
@@ -224,11 +232,11 @@ class MediaState(private val app: DashboardApplication) {
     }
     fun requestVideo(value: Boolean) { videoRequested=value && videoSafe(); updateVideo(); emit() }
     fun motionChanged() { updateVideo(); emit() }
-    fun attachSurface(owner: Any, car: Boolean, value: (() -> Surface?)) {
+    fun attachSurface(owner: Any, car: Boolean, value: (() -> Surface?), resize: (Int,Int)->Unit) {
         if (app.navigation.carConnected && !car) return
-        surfaceOwner=owner; surfaceCar=car; surface=value; updateVideo()
+        surfaceOwner=owner; surfaceCar=car; surface=value; resizeSurface=resize; resize(width,height); updateVideo()
     }
-    fun removeSurface(owner: Any) { if (surfaceOwner===owner) { surface=null; surfaceOwner=null; player?.clearVideoSurface(); visibleVideo=false; emit() } }
+    fun removeSurface(owner: Any) { if (surfaceOwner===owner) { surface=null; resizeSurface=null; surfaceOwner=null; player?.clearVideoSurface(); visibleVideo=false; emit() } }
     private fun updateVideo() {
         val connected=app.navigation.carConnected
         if (lastCarConnection != connected) { videoRequested=false; lastCarConnection=connected }
