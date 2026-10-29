@@ -14,3 +14,6 @@ android/gradle/wrapper/gradle-wrapper.jar
 
 tools/road_jvm/.gradle/
 tools/road_jvm/build/
+
+/tools/youtube_candidate/.gradle/
+/tools/youtube_candidate/build/

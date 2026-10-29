@@ -43,7 +43,7 @@ class MediaBridge(private val app: DashboardApplication, private val car: Boolea
                     "playSaved" -> { require(!worker); state.playSaved(call.argument<String>("id") ?: "",call.argument<Number>("index")?.toInt() ?: 0); result.success(null) }
                     "resolved" -> {
                         require(worker)
-                        state.resolved(call.argument<String>("token") ?: "",call.argument<String>("audio"),call.argument<String>("video"),call.argument<Boolean>("failed") == true)
+                        state.resolved(call.argument<String>("token") ?: "",call.argument<String>("audio"),call.argument<String>("video"),call.argument<Boolean>("failed") == true,call.argument<Boolean>("muxed") == true)
                         result.success(null)
                     }
                     "video" -> { require(!worker); state.requestVideo(call.argument<Boolean>("enabled") == true); result.success(null) }

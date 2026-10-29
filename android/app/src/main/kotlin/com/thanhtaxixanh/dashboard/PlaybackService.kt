@@ -4,10 +4,10 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Intent
+import android.view.KeyEvent
 import androidx.core.app.NotificationCompat
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
-import androidx.media3.common.ForwardingPlayer
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.DefaultMediaNotificationProvider
@@ -18,7 +18,10 @@ import androidx.media3.session.MediaSessionService
 class PlaybackService : MediaSessionService() {
     private var session: MediaSession? = null
     private var player: ExoPlayer? = null
+    private var queuePlayer: QueueSessionPlayer? = null
+    private var closing = false
     private val state get()=(application as DashboardApplication).media
+    private val buttons = MediaButtonRouter({ state.sessionPlayWhenReady() }, { state.command(it) })
     override fun onCreate() {
         super.onCreate()
         val notifications=getSystemService(NOTIFICATION_SERVICE) as NotificationManager
@@ -34,23 +37,30 @@ class PlaybackService : MediaSessionService() {
             it.trackSelectionParameters=it.trackSelectionParameters.buildUpon().setTrackTypeDisabled(C.TRACK_TYPE_VIDEO,true).build()
         }
         player=native
-        val queuePlayer=object : ForwardingPlayer(native) {
-            override fun getAvailableCommands(): Player.Commands = super.getAvailableCommands().buildUpon()
-                .add(Player.COMMAND_SEEK_TO_NEXT_MEDIA_ITEM).add(Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM)
-                .add(Player.COMMAND_SEEK_TO_NEXT).add(Player.COMMAND_SEEK_TO_PREVIOUS)
-                .remove(Player.COMMAND_CHANGE_MEDIA_ITEMS).build()
-            override fun isCommandAvailable(command: Int)=availableCommands.contains(command)
-            override fun seekToNextMediaItem() { state.skip(1) }
-            override fun seekToPreviousMediaItem() { state.skip(-1) }
-            override fun seekToNext() { state.skip(1) }
-            override fun seekToPrevious() { state.command("previous") }
-        }
-        session=MediaSession.Builder(this,queuePlayer).setSessionActivity(open).build()
+        val adapter=QueueSessionPlayer(native,state::sessionItems,state::sessionIndex,state::sessionPending,state::sessionPlayWhenReady,state::command,state::selectQueueItem)
+        queuePlayer=adapter
+        session=MediaSession.Builder(this,adapter).setSessionActivity(open).setCallback(object : MediaSession.Callback {
+            override fun onMediaButtonEvent(session: MediaSession, controllerInfo: MediaSession.ControllerInfo, intent: Intent): Boolean =
+                !closing && state.source=="youtube" && buttons.handle(intent)
+        }).build()
         state.attach(this,native)
+    }
+    fun refreshSession() { if (!closing) queuePlayer?.refresh() }
+    fun handleMediaKeyEvent(event: KeyEvent): Boolean = !closing && state.source=="youtube" && buttons.handle(event)
+    fun handoffToExternal() {
+        if (closing) return
+        closing=true
+        // Release immediately; a paused own session must not remain the target
+        // for hardware media keys intended for Spotify/Zing/YouTube Music.
+        player?.pause()
+        session?.release(); session=null
+        state.detach(this)
+        stopSelf()
     }
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? = session
     override fun onDestroy() {
-        state.detach(); session?.release(); session=null; player?.release(); player=null
+        closing=true
+        state.detach(this); session?.release(); session=null; queuePlayer?.release(); queuePlayer=null; player=null
         super.onDestroy()
     }
 }

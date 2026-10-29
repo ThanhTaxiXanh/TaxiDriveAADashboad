@@ -10,7 +10,7 @@ Cập nhật ngày 29/10/2026. Thanh cho phép tiếp tục GĐ6 sau khi dùng v
 | 3 · QR/logo | Đã triển khai, sửa nền PNG và logo dưới QR | Giữ kiểm thử dựng/giải mã và dữ liệu riêng |
 | 4 · Bản đồ/GPS | Thanh đã dùng bản 3D 60° | Giữ kiểm thử camera, Theo xe và ngắt AA |
 | 5 · Tốc độ/biển | v0.5.1 tạm ổn, được chỉ đạo tiếp | Chưa có số đo xác nhận sai lệch dưới 50 m tại 3 biển thật; chưa xác nhận ranh khu đông dân cư |
-| 6 · Media/YouTube | Đã triển khai mã v0.6.0; chờ nghiệm thu | Theo dõi CI/APK; thử app nhạc, playlist 30 phút và khóa video trên xe |
+| 6 · Media/YouTube | Đã triển khai mã v0.6.1; chờ nghiệm thu | Theo dõi CI/APK; thử app nhạc, playlist 30 phút và khóa video trên xe |
 | 7 · Hoàn thiện | Chưa bắt đầu | Hiệu năng/pin, mất kết nối, nhật ký, hướng dẫn cài lại; chạy một giờ và v1.0 |
 
 ## GĐ6
@@ -27,3 +27,11 @@ Cập nhật ngày 29/10/2026. Thanh cho phép tiếp tục GĐ6 sau khi dùng v
 - [ ] Video tự ẩn trên 5 km/h và khi vị trí không còn tin cậy; sau khi dừng phải bấm bật lại.
 
 Các ô thử xe chỉ đánh dấu sau phản hồi thực tế của Thanh; CI không thay thế các phép thử này.
+
+
+## Phản hồi sau 0.6.0
+
+- Thanh xác nhận YouTube chưa phát được; không đánh dấu nghiệm thu YouTube.
+- 0.6.1 bổ sung hàng đợi MediaSession và nhận phím kế/trước/phát-dừng, trả phím về app nhạc khác khi chuyển nguồn.
+- Thêm client tương thích và kiểm tra đọc media; vẫn phải thử phát thật trên điện thoại.
+- YouTube chạy nội bộ trong dashboard; giữ khóa hình khi xe chạy, cho nghe âm thanh và chuyển bài.
