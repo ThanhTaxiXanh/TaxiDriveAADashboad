@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -43,6 +44,8 @@ class MediaController extends ChangeNotifier {
   bool closed = false, busy = false;
   String? message, resolving;
   int revision = -1;
+  String? _artKey;
+  Uint8List? artwork;
   void notify() {
     if (!closed) notifyListeners();
   }
@@ -53,6 +56,12 @@ class MediaController extends ChangeNotifier {
     if (incoming != null && incoming < revision) return;
     if (incoming != null) revision = incoming;
     state = MediaSnapshot.fromJson(j);
+    final rawArt = state.external['art'];
+    final artKey = state.isExternal && rawArt is String ? rawArt : null;
+    if (artKey != _artKey) {
+      _artKey = artKey;
+      artwork = state.artwork;
+    }
     if (j['library'] is List)
       library = [
         for (final item in j['library']) MediaCollection.fromJson(item as Map),

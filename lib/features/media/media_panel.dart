@@ -43,7 +43,9 @@ class MediaPanel extends StatelessWidget {
       final tall =
           bounds.maxHeight >=
           12 + 52 + titleHeight + artistHeight + 24 + scaler.scale(16) * 1.5;
-      final art = tall && bounds.maxHeight >= 230 ? state.artwork : null;
+      final art = tall && bounds.maxHeight >= 230
+          ? controller?.artwork ?? state.artwork
+          : null;
       return Padding(
         padding: const EdgeInsets.all(4),
         child: Column(

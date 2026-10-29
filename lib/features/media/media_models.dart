@@ -126,6 +126,7 @@ class MediaSnapshot {
   bool get canSeek =>
       durationMs > 0 && (isExternal ? hasAction(256) : !loading);
   Uint8List? get artwork {
+    if (!isExternal) return null;
     final raw = external['art'];
     if (raw is! String || raw.length > 150000) return null;
     try {
