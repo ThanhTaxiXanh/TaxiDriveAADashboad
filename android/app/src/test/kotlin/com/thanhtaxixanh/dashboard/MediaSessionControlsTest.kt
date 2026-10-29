@@ -111,15 +111,20 @@ class MediaSessionControlsTest {
             override fun onEvents(eventPlayer: Player, events: Player.Events) { seenPlayers.add(eventPlayer) }
             override fun onAvailableCommandsChanged(commands: Player.Commands) { seenCommands.add(commands) }
         })
+        // SimpleBasePlayer initializes its state on the first getter, not when
+        // listeners are added. Observe the initial state before changing it.
+        assertEquals(Player.STATE_READY,player.playbackState)
+        assertEquals("second",player.currentMediaItem?.mediaId)
         fixture.native.commands=fixture.native.commands.buildUpon()
             .remove(Player.COMMAND_SEEK_TO_NEXT).remove(Player.COMMAND_SEEK_TO_NEXT_MEDIA_ITEM)
             .remove(Player.COMMAND_SEEK_TO_PREVIOUS).remove(Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM).build()
         fixture.native.buffering=true
         fixture.native.announceChanged(); ShadowLooper.idleMainLooper()
+        assertEquals(Player.STATE_BUFFERING,player.playbackState)
         assertTrue(player.isCommandAvailable(Player.COMMAND_SEEK_TO_NEXT))
         assertTrue(player.isCommandAvailable(Player.COMMAND_SEEK_TO_PREVIOUS))
         assertTrue(seenCommands.all { it.contains(Player.COMMAND_SEEK_TO_NEXT) && it.contains(Player.COMMAND_SEEK_TO_PREVIOUS) })
-        assertTrue(seenPlayers.isNotEmpty())
+        assertTrue("READY to BUFFERING must emit an adapter event",seenPlayers.isNotEmpty())
         assertTrue(seenPlayers.all { it===player })
         player.release()
     }
