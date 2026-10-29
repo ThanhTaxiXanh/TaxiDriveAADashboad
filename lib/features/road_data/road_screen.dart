@@ -95,6 +95,12 @@ class _RoadScreenState extends State<RoadScreen> {
                     () => road.saveSettings({...road.settings, 'estimates': v}),
                   ),
           ),
+          const Text(
+            'Ô tô con / VF e34 khi chưa có hạn tốc cụ thể:\n'
+            '• Đường hai chiều có dải phân cách cứng: trong khu đông dân cư 60, ngoài khu đông dân cư 90 km/h.\n'
+            '• Đường hai chiều không có dải phân cách cứng: tương ứng 50 và 80 km/h.\n'
+            'Đường một chiều từ hai làn cơ giới cũng dùng nhóm 60/90. Biển tốc độ theo từng đoạn được ưu tiên; vạch sơn không được coi là dải phân cách cứng. Nhận diện loại đường và vùng dân cư còn phụ thuộc dữ liệu OSM.',
+          ),
           DropdownButtonFormField<int>(
             initialValue: (road.settings['tolerance'] as num? ?? 5).toInt(),
             decoration: const InputDecoration(
@@ -128,6 +134,12 @@ class _RoadScreenState extends State<RoadScreen> {
             style: TextStyle(fontSize: 22),
           ),
           Text(road.message),
+          Text(
+            'Biển OSM quanh vị trí vừa tải: ${road.nearby.signs.length} · Ghim riêng: ${road.pins.length}',
+          ),
+          const Text(
+            'Biểu tượng biển xuất hiện trên cả bản đồ 2D và 3D, kể cả khi chưa dẫn đường hoặc xe đang đứng yên. Dữ liệu biển OSM được lấy trong khoảng 1,7 km quanh vị trí GPS; vùng khác hoặc nơi chưa được đóng góp có thể chưa có biển. Nhãn “Đoạn” là dữ liệu đầu đoạn OSM, không xác nhận vị trí biển thật. Chạm biểu tượng trên điện thoại để xem nguồn và hướng áp dụng.',
+          ),
           if (road.pack['built'] != null)
             Text(
               'Bản dựng: ${road.pack['built'].toString().split('T').first} · ${road.pack['counts']?['roads'] ?? '—'} đoạn đường',

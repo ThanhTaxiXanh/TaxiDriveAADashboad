@@ -1,6 +1,6 @@
-# Giai đoạn 5 · Tốc độ và biển báo · v0.5.0
+# Giai đoạn 5 · Tốc độ và biển báo · v0.5.1
 
-Thanh xác nhận bản 0.4.1 ổn và yêu cầu tiếp tục ngày 29/10/2026. Giai đoạn 5 chưa được nghiệm thu khoảng cách thực địa. Không thay phần vẽ 3D, vòng đời GPS, lịch hoặc dữ liệu QR.
+Thanh xác nhận bản 0.4.1 ổn và yêu cầu tiếp tục ngày 29/10/2026. Giai đoạn 5 chưa được nghiệm thu khoảng cách thực địa. Bản 0.5.1 bổ sung biển trên bản đồ và sửa nhận diện dải phân cách; giữ vòng đời GPS, lịch và dữ liệu QR.
 
 ## Nguồn và dữ kiện đã kiểm tra trước khi viết bộ lọc
 
@@ -45,3 +45,11 @@ Vượt hạn tốc + dung sai (mặc định 5, chỉnh 0–20 km/h) qua hai fi
 - GPX tổng hợp tuyến chữ L: khoảng cách dọc tuyến, thứ tự/giới hạn ba mục, không báo biển ngược chiều sau rẽ, đã qua không nhấp nháy lại, stale/weak GPS, ưu tiên/hiệu lực ghim, các nhóm bảng tốc độ, motorway/lanes/conditional, đi tự do và đường song song.
 - Widget: biển tự vẽ sáng/tối, ước tính và animation, cột hẹp, nhấn giữ bản đồ điện thoại rồi lưu ghim. Có PNG sheet biển trong artifact ui-previews. CI kiểm tra build ký ổn định, giữ native/shader 3D.
 - Chưa có đo khoảng cách thật, xác nhận R-tree/âm thanh/ghim trên Redmi hoặc replay trên xe. Thanh cần chọn ba biển có tọa độ đã kiểm tra (có thể ghim), chuẩn bị khi đỗ, đi qua và so khoảng cách báo trước với thực tế; mục tiêu sai lệch dưới 50 m. Thử chiều ngược lại không báo, mất mạng sau cài gói, phạm vi ghim, nút Theo xe và GPS tắt khi ngắt AA. Giai đoạn 6 chỉ tiếp sau nghiệm thu này hoặc chỉ đạo tiếp của Thanh.
+
+
+## Bản sửa 0.5.1 theo phản hồi thực tế
+
+- Bảng tốc độ xe con 60/90 trên đường đôi và 50/80 trên đường hai chiều không có dải phân cách cứng được giữ nguyên. Runtime nay đọc cả `divider=barrier/kerb` đã có sẵn trong gói, ngoài `dual_carriageway=yes`. Không suy ra dải phân cách từ vạch sơn, `divider=yes` hoặc tổng số làn hai chiều. Đường một chiều từ hai làn cơ giới cũng thuộc nhóm 60/90. Ranh khu đông dân cư vẫn phụ thuộc chất lượng dữ liệu, chưa xác nhận biển R.420/R.421.
+- Hạn tốc cụ thể theo loại xe/chiều/đoạn ưu tiên hơn mức ước tính. Sửa đánh giá điều kiện theo thứ tự cụ thể của loại xe và hướng; hạn chế làn/điều kiện liên quan chưa giải được vẫn trả chưa rõ. [OSM conditional restriction evaluation](https://wiki.openstreetmap.org/wiki/Conditional_restrictions). Biển OSM dạng điểm được hiển thị và báo trước theo hướng; không tự gán vô hạn phạm vi hiệu lực của biển điểm.
+- Lỗi hiển thị cũ: 2D chỉ đọc ghim riêng, 3D chỉ vẽ chấm đỏ ghim riêng; biển OSM từ truy vấn nearby không đi vào map. Bản sửa đưa cả hai nguồn lên map bằng hình biển tự vẽ, tách khỏi điều kiện cảnh báo đang chạy xe. Biển hướng chưa rõ vẫn xem được, không tự trở thành cảnh báo đúng hướng. Điểm đầu đoạn/hạn chế suy ra từ way được ghi Đoạn và phân biệt bằng viền nét đứt.
+- Gói đường schema 1 không đổi, dùng lại dữ liệu đã cài. Truy vấn biển vẫn trong khoảng 1,7 km quanh GPS, không phải toàn bộ vùng đang kéo bản đồ tới. Không khẳng định độ phủ đầy đủ. Bộ kiểm tra bổ sung: phân loại dải phân cách/vạch sơn, đổi hạn tốc qua hai đoạn và chiều ngược, phạm vi ghim, nguồn biển khi chưa có hướng/GPS/tuyến và biểu tượng 2D/3D. Cần thử trên xe thật để đánh giá vị trí và độ rõ.

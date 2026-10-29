@@ -181,6 +181,31 @@ void main() {
       final nav = NavController(connected: false);
       addTearDown(nav.dispose);
       nav.status = 'Mẫu kiểm tra bố cục';
+      nav.fix = NavFix.fromJson({
+        'lat': 21.281,
+        'lon': 106.194,
+        'accuracy': 5,
+        'speed': 0,
+        'bearing': 0,
+        'time': DateTime.now().millisecondsSinceEpoch,
+      });
+      nav.road.nearby = RoadNearby(
+        signs: [
+          RoadSign(
+            id: 'sample_speed',
+            point: const LatLng(21.2818, 106.1932),
+            kind: 'speed',
+            value: 60,
+            source: 'osm',
+          ),
+          RoadSign(
+            id: 'sample_noEntry',
+            point: const LatLng(21.2802, 106.1948),
+            kind: 'noEntry',
+            source: 'osm',
+          ),
+        ],
+      );
       nav.route = NavRoute(
         [
           const LatLng(21.281, 106.194),
