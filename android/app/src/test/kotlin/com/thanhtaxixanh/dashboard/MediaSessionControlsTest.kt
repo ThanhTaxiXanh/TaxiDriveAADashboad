@@ -126,6 +126,13 @@ class MediaSessionControlsTest {
         assertTrue(seenCommands.all { it.contains(Player.COMMAND_SEEK_TO_NEXT) && it.contains(Player.COMMAND_SEEK_TO_PREVIOUS) })
         assertTrue("READY to BUFFERING must emit an adapter event",seenPlayers.isNotEmpty())
         assertTrue(seenPlayers.all { it===player })
+        // A real virtual-queue boundary must publish the transformed command
+        // change, even though the underlying one-item player did not change.
+        fixture.index=2; player.refresh(); ShadowLooper.idleMainLooper()
+        assertTrue("Queue boundary must emit available commands",seenCommands.isNotEmpty())
+        assertFalse(seenCommands.last().contains(Player.COMMAND_SEEK_TO_NEXT))
+        assertTrue(seenCommands.last().contains(Player.COMMAND_SEEK_TO_PREVIOUS))
+        assertTrue(seenPlayers.all { it===player })
         player.release()
     }
 
