@@ -54,8 +54,8 @@ class MediaBridge(private val app: DashboardApplication, private val car: Boolea
                         if (producer==null) {
                             val created=binding.textureRegistry.createSurfaceProducer(); producer=created; created.setSize(1280,720)
                             created.setCallback(object : TextureRegistry.SurfaceProducer.Callback {
-                                override fun onSurfaceAvailable() { attachVideoSurface() }
-                                override fun onSurfaceCleanup() { state.removeSurface(this@MediaBridge) }
+                                override fun onSurfaceAvailable() { if (producer===created) attachVideoSurface() }
+                                override fun onSurfaceCleanup() { if (producer===created) state.removeSurface(this@MediaBridge) }
                             })
                         }
                         attachVideoSurface()
