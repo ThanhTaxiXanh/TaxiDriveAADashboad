@@ -8,7 +8,11 @@ void main() {
   test('Map signs load without a GPS heading or route; alerts remain gated', () {
     final road = RoadController(connected: false);
     addTearDown(road.dispose);
-    Map<String, dynamic> sign(String id, String kind, {String source = 'osm'}) => {
+    Map<String, dynamic> sign(
+      String id,
+      String kind, {
+      String source = 'osm',
+    }) => {
       'id': id,
       'kind': kind,
       'lat': 21.281,
@@ -23,10 +27,7 @@ void main() {
     // Native nearby queries are separate from the settings snapshot. Some
     // physical OSM signs have unknown direction: visible, never an alert here.
     road.nearby = RoadNearby.fromJson({
-      'signs': [
-        sign('n1:noEntry', 'noEntry'),
-        sign('user_one', 'speed'),
-      ],
+      'signs': [sign('n1:noEntry', 'noEntry'), sign('user_one', 'speed')],
     });
     expect(road.mapSigns.map((s) => s.kind), ['noEntry', 'speed']);
     expect(road.mapSigns.last.source, 'user');
@@ -37,9 +38,15 @@ void main() {
 
     road.nearby = const RoadNearby();
     expect(road.mapSigns.map((s) => s.id), ['user_one']);
-    road.accept({'revision': 2, 'settings': {'enabled': false}});
+    road.accept({
+      'revision': 2,
+      'settings': {'enabled': false},
+    });
     expect(road.mapSigns, isEmpty);
-    road.accept({'revision': 3, 'settings': {'enabled': true}});
+    road.accept({
+      'revision': 3,
+      'settings': {'enabled': true},
+    });
     expect(road.mapSigns, isEmpty);
   });
 }

@@ -118,6 +118,9 @@ Future<void> showMapSignGroupDetails(
 ) => showDialog<void>(
   context: context,
   builder: (context) => AlertDialog(
+    insetPadding: const EdgeInsets.all(8),
+    titlePadding: const EdgeInsets.fromLTRB(12, 16, 12, 0),
+    contentPadding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
     title: Text('${group.signs.length} bản ghi tại vị trí này'),
     content: SizedBox(
       width: 360,
@@ -127,6 +130,9 @@ Future<void> showMapSignGroupDetails(
         itemBuilder: (context, index) {
           final sign = group.signs[index];
           return ListTile(
+            contentPadding: EdgeInsets.zero,
+            minLeadingWidth: 36,
+            horizontalTitleGap: 8,
             leading: SignIcon(kind: sign.kind, value: sign.value, size: 36),
             title: Text(sign.title),
             subtitle: Text(
@@ -203,39 +209,41 @@ class MapRoadSign extends StatelessWidget {
   }
 }
 
-Future<void> showMapSignDetails(BuildContext context, RoadSign sign) =>
-    showDialog<void>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(sign.title),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SignIcon(kind: sign.kind, value: sign.value),
-              const SizedBox(height: 12),
-              Text(sign.source == 'user' ? 'Ghim của anh' : 'Nguồn: OpenStreetMap'),
-              if (isInferredMapSign(sign))
-                const Text(
-                  'Điểm quy tắc của đoạn đường OSM, chưa xác nhận vị trí biển ngoài thực tế.',
-                ),
-              Text(
-                '${mapSignDirection(sign)}. Biểu tượng trên bản đồ không tự kích hoạt cảnh báo; cảnh báo chỉ xét khi khớp hướng và đoạn đường.',
-              ),
-              if (sign.note.isNotEmpty) Text(sign.note),
-              const Text('Luôn tuân theo biển báo thực tế.'),
-            ],
+Future<void> showMapSignDetails(
+  BuildContext context,
+  RoadSign sign,
+) => showDialog<void>(
+  context: context,
+  builder: (context) => AlertDialog(
+    title: Text(sign.title),
+    content: SingleChildScrollView(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SignIcon(kind: sign.kind, value: sign.value),
+          const SizedBox(height: 12),
+          Text(sign.source == 'user' ? 'Ghim của anh' : 'Nguồn: OpenStreetMap'),
+          if (isInferredMapSign(sign))
+            const Text(
+              'Điểm quy tắc của đoạn đường OSM, chưa xác nhận vị trí biển ngoài thực tế.',
+            ),
+          Text(
+            '${mapSignDirection(sign)}. Biểu tượng trên bản đồ không tự kích hoạt cảnh báo; cảnh báo chỉ xét khi khớp hướng và đoạn đường.',
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Đóng'),
-          ),
+          if (sign.note.isNotEmpty) Text(sign.note),
+          const Text('Luôn tuân theo biển báo thực tế.'),
         ],
       ),
-    );
+    ),
+    actions: [
+      TextButton(
+        onPressed: () => Navigator.pop(context),
+        child: const Text('Đóng'),
+      ),
+    ],
+  ),
+);
 
 // Use adopted-frame projection, rather than an asynchronous camera listener,
 // to keep upright Flutter signs attached to the 60-degree GPU map while it moves.

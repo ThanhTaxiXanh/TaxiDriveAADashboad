@@ -284,8 +284,8 @@ class _FlatMapPanelState extends State<FlatMapPanel> {
                             onTap: widget.car
                                 ? null
                                 : (sign) => sign.source == 'user'
-                                    ? editPinAt(context, nav, sign.point)
-                                    : showMapSignDetails(context, sign),
+                                      ? editPinAt(context, nav, sign.point)
+                                      : showMapSignDetails(context, sign),
                           ),
                         ),
                       if (nav.goal != null)

@@ -215,10 +215,12 @@ void main() {
     SpeedLimit evaluate(Map<String, String> tags, {required bool urban}) =>
         resolveLimit(
           matchRoad(
-            [RoadEdge(200, fixture.roads.first.geometry, {
-              'highway': 'primary',
-              ...tags,
-            })],
+            [
+              RoadEdge(200, fixture.roads.first.geometry, {
+                'highway': 'primary',
+                ...tags,
+              }),
+            ],
             position,
             0,
           ),
@@ -269,10 +271,12 @@ void main() {
     SpeedLimit evaluate(Map<String, String> tags, {double heading = 0}) =>
         resolveLimit(
           matchRoad(
-            [RoadEdge(200, fixture.roads.first.geometry, {
-              'highway': 'primary',
-              ...tags,
-            })],
+            [
+              RoadEdge(200, fixture.roads.first.geometry, {
+                'highway': 'primary',
+                ...tags,
+              }),
+            ],
             position,
             heading,
           ),
@@ -281,34 +285,53 @@ void main() {
           heading: heading,
           urbanHint: true,
         );
-    expect(evaluate({
-      'maxspeed:motorcar': '60',
-      'maxspeed:conditional': '40 @ (wet)',
-    }).value, 60);
-    expect(evaluate({
-      'maxspeed:forward': '60',
-      'maxspeed:conditional': '40 @ (wet)',
-    }).value, 60);
-    expect(evaluate({
-      'maxspeed': '60',
-      'maxspeed:backward:conditional': '40 @ (wet)',
-    }).value, 60);
-    expect(evaluate({
-      'maxspeed': '60',
-      'maxspeed:backward:conditional': '40 @ (wet)',
-    }, heading: 180).value, isNull);
-    expect(evaluate({
-      'maxspeed:motorcar': '60',
-      'maxspeed:motorcar:conditional': '40 @ (wet)',
-    }).value, isNull);
-    expect(evaluate({
-      'maxspeed:motorcar:forward': '60',
-      'maxspeed:motorcar:lanes:forward:conditional': '40|60 @ (wet)',
-    }).value, isNull);
-    expect(evaluate({
-      'maxspeed:motorcar:forward': '60',
-      'maxspeed:lanes:forward': '40|60',
-    }).value, 60);
+    expect(
+      evaluate({
+        'maxspeed:motorcar': '60',
+        'maxspeed:conditional': '40 @ (wet)',
+      }).value,
+      60,
+    );
+    expect(
+      evaluate({'maxspeed:forward': '60', 'maxspeed:conditional': '40 @ (wet)'})
+          .value,
+      60,
+    );
+    expect(
+      evaluate({
+        'maxspeed': '60',
+        'maxspeed:backward:conditional': '40 @ (wet)',
+      }).value,
+      60,
+    );
+    expect(
+      evaluate({
+        'maxspeed': '60',
+        'maxspeed:backward:conditional': '40 @ (wet)',
+      }, heading: 180).value,
+      isNull,
+    );
+    expect(
+      evaluate({
+        'maxspeed:motorcar': '60',
+        'maxspeed:motorcar:conditional': '40 @ (wet)',
+      }).value,
+      isNull,
+    );
+    expect(
+      evaluate({
+        'maxspeed:motorcar:forward': '60',
+        'maxspeed:motorcar:lanes:forward:conditional': '40|60 @ (wet)',
+      }).value,
+      isNull,
+    );
+    expect(
+      evaluate({
+        'maxspeed:motorcar:forward': '60',
+        'maxspeed:lanes:forward': '40|60',
+      }).value,
+      60,
+    );
   });
   test('Posted limits change with road segment and the nearest passed pin has bounded scope', () {
     const start = LatLng(21.281, 106.194);
@@ -328,7 +351,13 @@ void main() {
         'maxspeed:backward': '30',
       }),
     ];
-    RoadSign pin(String id, double lat, int value, {int way = 100, double scope = 300}) => RoadSign(
+    RoadSign pin(
+      String id,
+      double lat,
+      int value, {
+      int way = 100,
+      double scope = 300,
+    }) => RoadSign(
       id: id,
       point: LatLng(lat, 106.194),
       kind: 'speed',
@@ -344,7 +373,11 @@ void main() {
       pin('user_ahead', 21.2858, 10),
       pin('user_other_road', 21.2849, 10, way: 999),
     ];
-    SpeedLimit evaluate(double lat, {double heading = 0, bool withPins = false}) {
+    SpeedLimit evaluate(
+      double lat, {
+      double heading = 0,
+      bool withPins = false,
+    }) {
       final point = LatLng(lat, 106.194);
       return resolveLimit(
         matchRoad(roads, point, heading),
@@ -354,6 +387,7 @@ void main() {
         urbanHint: false,
       );
     }
+
     expect(evaluate(21.285).value, 60);
     expect(evaluate(21.287).value, 40);
     expect(evaluate(21.287, heading: 180).value, 30);

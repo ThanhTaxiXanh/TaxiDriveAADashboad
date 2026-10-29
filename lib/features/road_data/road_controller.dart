@@ -64,10 +64,12 @@ class RoadController extends ChangeNotifier {
     if (!identical(_mapPins, pins) || !identical(_mapNearby, nearby)) {
       _mapPins = pins;
       _mapNearby = nearby;
-      _mapSigns = List.unmodifiable({
-        for (final sign in nearby.signs) sign.id: sign,
-        for (final pin in pins) pin.id: pin,
-      }.values);
+      _mapSigns = List.unmodifiable(
+        {
+          for (final sign in nearby.signs) sign.id: sign,
+          for (final pin in pins) pin.id: pin,
+        }.values,
+      );
     }
     return _mapSigns;
   }

@@ -310,8 +310,8 @@ class _GpuMapPanelState extends State<GpuMapPanel> {
                                 onTap: widget.car
                                     ? null
                                     : (sign) => sign.source == 'user'
-                                        ? editPinAt(context, nav, sign.point)
-                                        : showMapSignDetails(context, sign),
+                                          ? editPinAt(context, nav, sign.point)
+                                          : showMapSignDetails(context, sign),
                               );
                             },
                             onMapLongClick: widget.car
