@@ -62,11 +62,14 @@ class _SpeedBadgeState extends State<SpeedBadge>
               value: widget.status.limit.value,
               estimated: widget.status.limit.estimated,
             ),
-            Text(
-              widget.status.limit.label,
-              style: const TextStyle(fontSize: 16),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+            ColoredBox(
+              color: Theme.of(context).colorScheme.surface,
+              child: Text(
+                widget.status.limit.label,
+                style: const TextStyle(fontSize: 16),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ],
         ),

@@ -244,8 +244,9 @@ class RoadEngine {
         lastHeading != null && angleDifference(lastHeading!, heading) > 120) {
       reset();
       routeKey = version;
+      lastHeading = heading;
     }
-    lastHeading = heading;
+    lastHeading ??= heading;
     if (fix == null ||
         !fix.usable(now) ||
         fix.accuracy > 30 ||
@@ -320,10 +321,16 @@ class RoadEngine {
         if (item.bearing != null) travel = match.heading;
       } else {
         final d = meters(fix.point, item.point);
-        if (d > 2 &&
-            angleDifference(course(fix.point, item.point), heading) > 30)
-          continue;
-        delta = d;
+        final difference = angleDifference(course(fix.point, item.point), heading);
+        if (difference > 150 && d > 2) {
+          if (item.bearing != null && angleDifference(item.bearing!, heading) >= 60) continue;
+          if (d > 20) { passed.add(item.id); continue; }
+          if (!visible.contains(item.id)) continue;
+          delta = -d;
+        } else {
+          if (d > 2 && difference > 30) continue;
+          delta = d;
+        }
       }
       if (item.bearing != null && angleDifference(item.bearing!, travel) >= 60)
         continue;
