@@ -62,7 +62,10 @@ class NavigationState(private val context: Context) {
         }
         return data.toString()
     }
-    fun emit() { val data = snapshot(); listeners.toList().forEach { it.success(data) } }
+    fun emit() {
+        val data = snapshot(); listeners.toList().forEach { it.success(data) }
+        (context.applicationContext as DashboardApplication).media.motionChanged()
+    }
     fun add(sink: EventChannel.EventSink) { listeners.add(sink); sink.success(snapshot()) }
     fun remove(sink: EventChannel.EventSink?) { listeners.remove(sink) }
     fun location(value: Location) {

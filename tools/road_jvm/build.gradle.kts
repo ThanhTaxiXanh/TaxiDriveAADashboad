@@ -8,6 +8,7 @@ kotlin { jvmToolchain(17) }
 sourceSets.main {
     kotlin.srcDir("../../android/app/src/main/kotlin")
     kotlin.include("**/RoadDatabase.kt")
+    kotlin.include("**/MediaPolicy.kt")
 }
 tasks.test {
     environment("ROAD_FIXTURE", file("../../build/road-contract.sqlite").absolutePath)

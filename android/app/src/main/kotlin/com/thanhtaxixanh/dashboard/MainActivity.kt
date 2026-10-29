@@ -39,6 +39,7 @@ class MainActivity : FlutterActivity() {
         state.phoneVisible = true
         state.emit()
         (application as DashboardApplication).carLocation.permissionsChanged()
+        (application as DashboardApplication).media.external.refresh()
         if (state.running) state.initSpeech()
     }
     override fun onPause() {
