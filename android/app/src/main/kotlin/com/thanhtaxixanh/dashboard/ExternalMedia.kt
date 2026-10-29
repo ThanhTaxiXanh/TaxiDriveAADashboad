@@ -100,9 +100,13 @@ class ExternalMedia(private val context: Context, private val changed: () -> Uni
         val controller = selected ?: return
         val controls = controller.transportControls; val flags = controller.playbackState?.actions ?: 0
         fun supports(flag: Long) = flags and flag != 0L
+        fun toggle() {
+            controller.dispatchMediaButtonEvent(android.view.KeyEvent(android.view.KeyEvent.ACTION_DOWN,android.view.KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE))
+            controller.dispatchMediaButtonEvent(android.view.KeyEvent(android.view.KeyEvent.ACTION_UP,android.view.KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE))
+        }
         when (action) {
-            "play" -> if (supports(PlaybackState.ACTION_PLAY) || supports(PlaybackState.ACTION_PLAY_PAUSE)) controls.play()
-            "pause" -> if (supports(PlaybackState.ACTION_PAUSE) || supports(PlaybackState.ACTION_PLAY_PAUSE)) controls.pause()
+            "play" -> if (supports(PlaybackState.ACTION_PLAY)) controls.play() else if (supports(PlaybackState.ACTION_PLAY_PAUSE)) toggle()
+            "pause" -> if (supports(PlaybackState.ACTION_PAUSE)) controls.pause() else if (supports(PlaybackState.ACTION_PLAY_PAUSE)) toggle()
             "previous" -> if (supports(PlaybackState.ACTION_SKIP_TO_PREVIOUS)) controls.skipToPrevious()
             "next" -> if (supports(PlaybackState.ACTION_SKIP_TO_NEXT)) controls.skipToNext()
             "seek" -> if (supports(PlaybackState.ACTION_SEEK_TO)) controls.seekTo(position.coerceAtLeast(0))

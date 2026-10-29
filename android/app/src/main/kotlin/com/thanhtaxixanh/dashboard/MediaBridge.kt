@@ -64,7 +64,10 @@ class MediaBridge(private val app: DashboardApplication, private val car: Boolea
                     "releaseTexture" -> { if (call.argument<String>("lease")==textureLease) releaseTexture(); result.success(null) }
                     else -> result.notImplemented()
                 }
-            } catch (_: Exception) { result.error("MEDIA","Không thực hiện được. Kiểm tra quyền hoặc chọn lại bài",null) }
+            } catch (error: Exception) {
+                if (error.message=="MEDIA_LIMIT") result.error("MEDIA_LIMIT","Đã đủ 60 danh sách. Xóa bớt trước khi lưu thêm",null)
+                else result.error("MEDIA","Không thực hiện được. Kiểm tra quyền hoặc chọn lại bài",null)
+            }
         }
     }
     private fun attachVideoSurface() { state.attachSurface(this,car,{ producer?.surface },{ width,height -> producer?.setSize(width,height) }) }

@@ -201,10 +201,18 @@ class _YoutubePanelState extends State<YoutubePanel> {
                     label: const Text('Điều khiển app nhạc'),
                   ),
                   if (s.isExternal) ...[
-                    Text(s.displayTitle, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 18)),
+                    Text(
+                      s.displayTitle,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 18),
+                    ),
                     MediaControls(controller: media, state: s),
                     if (widget.car && s.external['permission'] != true)
-                      const Text('Cấp Truy cập thông báo trên điện thoại để điều khiển app nhạc.', style: TextStyle(fontSize: 16)),
+                      const Text(
+                        'Cấp Truy cập thông báo trên điện thoại để điều khiển app nhạc.',
+                        style: TextStyle(fontSize: 16),
+                      ),
                   ],
                   if (showVideo)
                     AspectRatio(
@@ -226,7 +234,10 @@ class _YoutubePanelState extends State<YoutubePanel> {
                     MediaControls(controller: media, state: s),
                     MediaProgress(controller: media, state: s),
                     Text(s.message, style: const TextStyle(fontSize: 16)),
-                  Text('Thời gian phát thực: ${mediaTime(s.playedMs)}', style: const TextStyle(fontSize: 16)),
+                    Text(
+                      'Thời gian phát thực: ${mediaTime(s.playedMs)}',
+                      style: const TextStyle(fontSize: 16),
+                    ),
                     if (s.loading) const LinearProgressIndicator(),
                     Wrap(
                       spacing: 4,

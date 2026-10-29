@@ -18,7 +18,11 @@ Future<void> main() async {
     };
     try {
       final manifest = await yt.videos.streams
-          .getManifest('aqz-KE-bpKQ', ytClients: [option.$2], requireWatchPage: option.$3)
+          .getManifest(
+            'aqz-KE-bpKQ',
+            ytClients: [option.$2],
+            requireWatchPage: option.$3,
+          )
           .timeout(const Duration(seconds: 20));
       report.addAll({
         'audio_streams': manifest.audioOnly.length,

@@ -114,18 +114,37 @@ void main() {
       expect((calls.last.arguments as Map)['token'], 'one');
     },
   );
-  testWidgets('Older cross-channel snapshot cannot replace a newer track request', (tester) async {
-    final provider=FakeYoutubeProvider();
-    final worker=MediaController(connected:false,worker:true,provider:provider);
-    worker.accept({'revision':8,'request':{'token':'current','entry':entry},'source':'youtube','title':'Current'});
-    worker.accept({'revision':7,'request':{'token':'old','entry':entry},'source':'external','title':'Old'});
-    expect(provider.calls,1);
-    expect(worker.state.source,'youtube');
-    expect(worker.state.title,'Current');
-    worker.dispose();
-    provider.pending['aqz-KE-bpKQ']!.complete(YoutubeStreams(Uri.parse('https://test.googlevideo.com/a'),null));
-    await tester.pump();
-  });
+  testWidgets(
+    'Older cross-channel snapshot cannot replace a newer track request',
+    (tester) async {
+      final provider = FakeYoutubeProvider();
+      final worker = MediaController(
+        connected: false,
+        worker: true,
+        provider: provider,
+      );
+      worker.accept({
+        'revision': 8,
+        'request': {'token': 'current', 'entry': entry},
+        'source': 'youtube',
+        'title': 'Current',
+      });
+      worker.accept({
+        'revision': 7,
+        'request': {'token': 'old', 'entry': entry},
+        'source': 'external',
+        'title': 'Old',
+      });
+      expect(provider.calls, 1);
+      expect(worker.state.source, 'youtube');
+      expect(worker.state.title, 'Current');
+      worker.dispose();
+      provider.pending['aqz-KE-bpKQ']!.complete(
+        YoutubeStreams(Uri.parse('https://test.googlevideo.com/a'), null),
+      );
+      await tester.pump();
+    },
+  );
   testWidgets(
     'Extractor error reports no private URL or exception; disposed worker sends nothing',
     (tester) async {

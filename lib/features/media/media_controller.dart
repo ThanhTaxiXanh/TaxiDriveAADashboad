@@ -63,9 +63,13 @@ class MediaController extends ChangeNotifier {
       ];
     notify();
     final request = j['request'];
-    if (worker && j.containsKey('request') && request == null && resolving != null) {
+    if (worker &&
+        j.containsKey('request') &&
+        request == null &&
+        resolving != null) {
       resolving = null;
-      if (provider is ExplodeStreamProvider) (provider as ExplodeStreamProvider).cancelResolve();
+      if (provider is ExplodeStreamProvider)
+        (provider as ExplodeStreamProvider).cancelResolve();
     }
     if (worker && request is Map && request['token'] != resolving) {
       resolving = request['token'] as String;
@@ -109,6 +113,10 @@ class MediaController extends ChangeNotifier {
     try {
       await methods.invokeMethod(name, args);
       message = null;
+    } on PlatformException catch (error) {
+      message = error.code == 'MEDIA_LIMIT'
+          ? 'Đã đủ 60 danh sách. Xóa bớt trước khi lưu thêm'
+          : 'Chưa thực hiện được. Kiểm tra quyền hoặc thử lại';
     } catch (_) {
       message = 'Chưa thực hiện được. Kiểm tra quyền hoặc thử lại';
     }

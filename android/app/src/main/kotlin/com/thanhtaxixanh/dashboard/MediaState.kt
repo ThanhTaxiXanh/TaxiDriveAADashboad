@@ -120,8 +120,9 @@ class MediaState(private val app: DashboardApplication) {
         require(id.matches(Regex("[A-Za-z0-9_-]{1,120}")))
         val value = JSONObject().put("id",id).put("title",input.getString("title").take(200))
             .put("favorite",input.optBoolean("favorite",true)).put("entries",entries(input.getJSONArray("entries")))
+        if (library.length()>=60 && (0 until library.length()).none { library.getJSONObject(it).getString("id")==id }) throw IllegalStateException("MEDIA_LIMIT")
         val next = JSONArray().put(value)
-        for (i in 0 until library.length()) if (library.getJSONObject(i).getString("id") != id && next.length() < 60) next.put(library.getJSONObject(i))
+        for (i in 0 until library.length()) if (library.getJSONObject(i).getString("id") != id) next.put(library.getJSONObject(i))
         require(next.toString().toByteArray().size <= 2*1024*1024)
         library = next; persist(); emit(true)
     }
