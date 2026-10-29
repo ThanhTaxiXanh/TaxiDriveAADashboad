@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<osm version="0.6" generator="TaxiXanh synthetic fixture">
+ <node id="1" lat="21.281" lon="106.194"/>
+ <node id="2" lat="21.286" lon="106.194"><tag k="traffic_sign" v="VN:401,127[60]"/><tag k="traffic_sign:direction" v="forward"/></node>
+ <node id="3" lat="21.291" lon="106.194"><tag k="highway" v="stop"/><tag k="direction" v="forward"/></node>
+ <node id="4" lat="21.291" lon="106.199"><tag k="traffic_sign" v="P.123a: No left turn"/><tag k="traffic_sign:direction" v="backward"/></node>
+ <node id="5" lat="21.291" lon="106.204"/>
+ <node id="6" lat="21.282" lon="106.195"><tag k="traffic_sign" v="VN:102"/><tag k="direction" v="180"/></node>
+ <node id="7" lat="21.284" lon="106.197"><tag k="traffic_sign" v="yes"/></node>
+ <node id="8" lat="21.282" lon="106.193"><tag k="place" v="village"/></node>
+ <way id="100"><nd ref="1"/><nd ref="2"/><nd ref="3"/><tag k="highway" v="primary"/><tag k="maxspeed:forward" v="60"/><tag k="maxspeed:backward" v="40"/></way>
+ <way id="101"><nd ref="3"/><nd ref="4"/><nd ref="5"/><tag k="highway" v="primary"/><tag k="maxspeed" v="80"/><tag k="maxspeed:conditional" v="60 @ (wet)"/><tag k="maxspeed:hgv" v="70"/></way>
+ <relation id="900"><member type="way" ref="100" role="from"/><member type="node" ref="3" role="via"/><member type="way" ref="101" role="to"/><tag k="type" v="restriction"/><tag k="restriction" v="no_right_turn"/></relation>
+</osm>
