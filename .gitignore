@@ -11,3 +11,6 @@ android/gradlew
 android/gradlew.bat
 android/gradle/wrapper/gradle-wrapper.jar
 .idea/
+
+tools/road_jvm/.gradle/
+tools/road_jvm/build/

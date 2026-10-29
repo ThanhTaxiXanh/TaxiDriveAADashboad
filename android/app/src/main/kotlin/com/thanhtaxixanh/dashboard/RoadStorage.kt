@@ -1,7 +1,6 @@
 package com.thanhtaxixanh.dashboard
 
 import android.content.Context
-import android.database.sqlite.SQLiteDatabase
 import android.media.AudioAttributes
 import android.media.AudioFocusRequest
 import android.media.AudioManager
@@ -31,7 +30,7 @@ class RoadStorage(private val context: Context) {
     private val worker = Executors.newSingleThreadExecutor()
     private val downloader = Executors.newSingleThreadExecutor()
     private val file = File(context.filesDir, "vietnam-roads.sqlite")
-    private var database: SQLiteDatabase? = null // worker only
+    private var database: RoadDatabase? = null // worker only
     private val listeners = mutableSetOf<EventChannel.EventSink>()
     private var revision = prefs.getLong("revision", 0)
     private var pins = JSONArray(prefs.getString("pins", "[]"))
@@ -88,9 +87,9 @@ class RoadStorage(private val context: Context) {
         settings=JSONObject().put("vehicle",vehicle).put("tolerance",tolerance).put("enabled",input.optBoolean("enabled",true)).put("estimates",input.optBoolean("estimates",true)).put("beep",input.optBoolean("beep",false))
         prefs.edit().putString("settings",settings.toString()).apply(); changed()
     }
-    private fun open(): SQLiteDatabase? {
+    private fun open(): RoadDatabase? {
         if (!file.exists()) return null
-        if (database==null) database=SQLiteDatabase.openDatabase(file.path,null,SQLiteDatabase.OPEN_READONLY or SQLiteDatabase.NO_LOCALIZED_COLLATORS)
+        if (database==null) database=RoadDatabase.open(file)
         return database
     }
     fun nearby(lat: Double, lon: Double, reply: (String?, String?) -> Unit) {
@@ -99,7 +98,7 @@ class RoadStorage(private val context: Context) {
             try {
                 val db=open(); val roads=JSONArray(); val signs=JSONArray(); var urban=false; var truncated=false
                 if (db!=null) {
-                    fun query(table: String, radius: Double, limit: Int, payload: Boolean, consume: (android.database.Cursor)->Unit) {
+                    fun query(table: String, radius: Double, limit: Int, payload: Boolean, consume: (RoadRows)->Unit) {
                         val dy=radius/111195; val dx=dy/cos(lat*PI/180).coerceAtLeast(.01)
                         val sql="SELECT ${if(payload) "t.payload" else "t.lat,t.lon,t.radius"} FROM $table t JOIN ${table}_rtree r ON r.id=t.id WHERE r.minLon<=? AND r.maxLon>=? AND r.minLat<=? AND r.maxLat>=? LIMIT $limit"
                         db.rawQuery(sql,arrayOf((lon+dx).toString(),(lon-dx).toString(),(lat+dy).toString(),(lat-dy).toString())).use { c -> while(c.moveToNext()) consume(c) }
@@ -156,7 +155,7 @@ class RoadStorage(private val context: Context) {
                     val buffer=ByteArray(65536); while(true) { val count=input.read(buffer); if(count<0) break; size+=count; require(size<=dbBytes); out.write(buffer,0,count) }
                 } }
                 require(size==dbBytes)
-                val validated=SQLiteDatabase.openDatabase(temp.path,null,SQLiteDatabase.OPEN_READONLY or SQLiteDatabase.NO_LOCALIZED_COLLATORS)
+                val validated=RoadDatabase.open(temp)
                 val metadata=validated.use { db ->
                     require(db.version==1)
                     db.rawQuery("PRAGMA quick_check",null).use { check(it.moveToFirst() && it.getString(0)=="ok") }

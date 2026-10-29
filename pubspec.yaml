@@ -24,6 +24,7 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
+    - assets/licenses/ANDROIDX_SQLITE_LICENSE.txt
     - assets/licenses/MAPLIBRE_NATIVE_NOTICES.md
     - assets/fonts/OFL.txt
     - assets/events_vn.json

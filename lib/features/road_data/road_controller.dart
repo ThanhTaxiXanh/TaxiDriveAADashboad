@@ -111,7 +111,19 @@ class RoadController extends ChangeNotifier {
     final p = _fix?.point;
     final usable =
         p != null && queryOrigin != null && meters(p, queryOrigin!) <= 100;
-    final key = (_fix?.time.millisecondsSinceEpoch, _fix?.accuracy, _heading, _headingKnown, _version, identityHashCode(_route), revision, dataEpoch, usable, _fix?.usable(DateTime.now()), enabled);
+    final key = (
+      _fix?.time.millisecondsSinceEpoch,
+      _fix?.accuracy,
+      _heading,
+      _headingKnown,
+      _version,
+      identityHashCode(_route),
+      revision,
+      dataEpoch,
+      usable,
+      _fix?.usable(DateTime.now()),
+      enabled,
+    );
     if (key == evaluationKey) return;
     evaluationKey = key;
     status = enabled

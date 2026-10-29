@@ -38,6 +38,10 @@ jobs:
             exit 1
           fi
       - run: flutter analyze
+      - name: Native SQLite R-tree contract
+        run: |
+          python3 tools/build_road_fixture.py
+          bash android/gradlew -p tools/road_jvm test --no-daemon
       - run: flutter test --coverage
       - name: Export first-review golden previews
         timeout-minutes: 3
