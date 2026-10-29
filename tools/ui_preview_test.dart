@@ -3,6 +3,9 @@ import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:latlong2/latlong.dart';
+import 'package:taxi_driver_aa_dashboard/features/road_data/sign_painter.dart';
+import 'package:taxi_driver_aa_dashboard/features/road_data/road_models.dart';
+import 'package:taxi_driver_aa_dashboard/features/road_data/road_widgets.dart';
 import 'package:taxi_driver_aa_dashboard/features/navigation/map_panel.dart';
 import 'package:taxi_driver_aa_dashboard/features/navigation/nav_controller.dart';
 import 'package:taxi_driver_aa_dashboard/features/navigation/nav_models.dart';
@@ -206,6 +209,63 @@ void main() {
         find.byKey(const ValueKey('navigation-fixture')),
         matchesGoldenFile(
           '../build/previews/navigation-geometry-${width.toInt()}.png',
+        ),
+      );
+    });
+  }
+  for (final brightness in Brightness.values) {
+    testWidgets('Road sign sheet $brightness', (tester) async {
+      tester.view.physicalSize = const Size(600, 700);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: dashboardTheme(brightness),
+          home: Scaffold(
+            body: RepaintBoundary(
+              key: const ValueKey('road-signs'),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  children: [
+                    for (final entry in roadKinds.entries)
+                      SizedBox(
+                        width: 126,
+                        child: Column(
+                          children: [
+                            SignIcon(
+                              kind: entry.key,
+                              value: entry.key == 'speed' ? 80 : null,
+                              size: 72,
+                            ),
+                            Text(
+                              entry.value,
+                              style: const TextStyle(fontSize: 16),
+                            ),
+                          ],
+                        ),
+                      ),
+                    const SpeedBadge(
+                      status: RoadStatus(
+                        limit: SpeedLimit(50, 'estimate', estimated: true),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+      await expectLater(
+        find.byKey(const ValueKey('road-signs')),
+        matchesGoldenFile(
+          '../build/previews/road-signs-${brightness.name}.png',
         ),
       );
     });

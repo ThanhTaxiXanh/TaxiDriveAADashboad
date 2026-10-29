@@ -8,10 +8,10 @@ import io.flutter.plugin.common.MethodChannel
 import java.io.ByteArrayOutputStream
 import java.io.File
 
-class CalendarFiles(private val activity: Activity, engine: FlutterEngine) {
-    private val channel = MethodChannel(engine.dartExecutor.binaryMessenger, "taxi/calendar_files")
+class CalendarFiles(private val activity: Activity, engine: FlutterEngine, private val road: Boolean = false) {
+    private val channel = MethodChannel(engine.dartExecutor.binaryMessenger, if (road) "taxi/road_files" else "taxi/calendar_files")
     private var pending: MethodChannel.Result? = null
-    private val request = 7821
+    private val request = if (road) 7831 else 7821
     init {
         channel.setMethodCallHandler { call, result ->
             try {
@@ -28,11 +28,11 @@ class CalendarFiles(private val activity: Activity, engine: FlutterEngine) {
                     "export" -> {
                         val json = call.argument<String>("json") ?: error("Missing JSON")
                         require(json.toByteArray().size <= 1024 * 1024)
-                        val folder = File(activity.cacheDir, "shared-events").apply { mkdirs() }
-                        val file = File(folder, "taxi-xanh-events.json").apply { writeText(json) }
+                        val folder = File(activity.cacheDir, if (road) "shared-road-pins" else "shared-events").apply { mkdirs() }
+                        val file = File(folder, if (road) "taxi-xanh-road-pins.json" else "taxi-xanh-events.json").apply { writeText(json) }
                         val uri = FileProvider.getUriForFile(activity, "${activity.packageName}.logs", file)
                         val intent = Intent(Intent.ACTION_SEND).apply { type = "application/json"; putExtra(Intent.EXTRA_STREAM, uri); addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION) }
-                        activity.startActivity(Intent.createChooser(intent, "Xuất sự kiện · Chọn nơi lưu hoặc chia sẻ"))
+                        activity.startActivity(Intent.createChooser(intent, if (road) "Xuất ghim biển báo · Chọn nơi lưu hoặc chia sẻ" else "Xuất sự kiện · Chọn nơi lưu hoặc chia sẻ"))
                         result.success(null)
                     }
                     else -> result.notImplemented()

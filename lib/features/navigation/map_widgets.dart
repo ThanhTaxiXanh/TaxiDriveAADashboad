@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import 'nav_controller.dart';
+import '../road_data/road_widgets.dart';
 
 String distanceText(double meters) => meters < 1000
     ? '${meters.round()} m'
@@ -15,7 +16,7 @@ class NavSummary extends StatelessWidget {
   Widget build(BuildContext context) {
     final n = navigation;
     return SizedBox(
-      height: 144,
+      height: 180,
       child: ColoredBox(
         color: Theme.of(context).colorScheme.surface,
         child: SingleChildScrollView(
@@ -30,7 +31,7 @@ class NavSummary extends StatelessWidget {
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
                   ),
-                  maxLines: 3,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
                 Wrap(
@@ -42,6 +43,7 @@ class NavSummary extends StatelessWidget {
                           : 'GPS: —',
                       style: const TextStyle(fontSize: 22),
                     ),
+                    if (n.road.enabled) SpeedBadge(status: n.road.status),
                     if (n.active && n.precise && n.route != null && !n.offRoute)
                       Text(
                         '${distanceText(n.turnDistance)} tới thao tác',

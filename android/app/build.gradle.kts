@@ -41,6 +41,7 @@ android {
 kotlin { compilerOptions { jvmTarget.set(JvmTarget.JVM_17) } }
 flutter { source = "../.." }
 dependencies {
+    implementation("androidx.sqlite:sqlite-bundled:2.7.1")
     implementation("androidx.car.app:app:1.7.0")
     implementation("androidx.car.app:app-projected:1.7.0")
     implementation("androidx.core:core-ktx:1.16.0")

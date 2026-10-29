@@ -197,6 +197,7 @@ class NavigationState(private val context: Context) {
 }
 
 class NavigationBridge(engine: FlutterEngine, private val state: NavigationState, private val context: Context, private val phone: Boolean) {
+    private val roads = RoadBridge(engine, context, phone)
     private val methods = MethodChannel(engine.dartExecutor.binaryMessenger, "taxi/navigation")
     private val events = EventChannel(engine.dartExecutor.binaryMessenger, "taxi/navigation/events")
     private var sink: EventChannel.EventSink? = null
@@ -233,5 +234,5 @@ class NavigationBridge(engine: FlutterEngine, private val state: NavigationState
             override fun onCancel(arguments: Any?) { state.remove(sink); sink = null }
         })
     }
-    fun close() { state.remove(sink); methods.setMethodCallHandler(null); events.setStreamHandler(null) }
+    fun close() { roads.close(); state.remove(sink); methods.setMethodCallHandler(null); events.setStreamHandler(null) }
 }

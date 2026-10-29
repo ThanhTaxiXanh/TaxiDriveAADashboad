@@ -12,5 +12,9 @@ void registerNativeMapLicenses() {
     yield LicenseEntryWithLineBreaks([
       'MapLibre Native and linked components',
     ], text);
+    final sqlite = await rootBundle.loadString(
+      'assets/licenses/ANDROIDX_SQLITE_LICENSE.txt',
+    );
+    yield LicenseEntryWithLineBreaks(['AndroidX SQLite (bundled)'], sqlite);
   });
 }

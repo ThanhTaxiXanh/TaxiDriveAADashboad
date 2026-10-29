@@ -7,11 +7,14 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 
 import 'nav_models.dart';
+import '../road_data/road_controller.dart';
 import 'routing_provider.dart';
 
 class NavController extends ChangeNotifier {
   NavController({this.connected = true, this.car = false, http.Client? client})
     : client = client ?? http.Client() {
+    road = RoadController(connected: connected, car: car);
+    road.addListener(notify);
     if (connected) {
       subscription = events.receiveBroadcastStream().listen(
         (raw) => accept(jsonDecode(raw as String) as Map<String, dynamic>),
@@ -31,6 +34,8 @@ class NavController extends ChangeNotifier {
   static const events = EventChannel('taxi/navigation/events');
   static const location = MethodChannel('taxi/location_control');
   final bool connected, car;
+  late final RoadController road;
+  bool get hasHeading => _hasBearing;
   final http.Client client;
   StreamSubscription<dynamic>? subscription;
   Timer? timer;
@@ -90,7 +95,16 @@ class NavController extends ChangeNotifier {
         _ => 'https://photon.komoot.io/api/',
       };
   void notify() {
-    if (!closed) notifyListeners();
+    if (!closed) {
+      road.update(
+        fix: running ? fix : null,
+        heading: bearing,
+        headingKnown: _hasBearing,
+        route: active ? route : null,
+        version: '$revision:$goalRevision:$active',
+      );
+      notifyListeners();
+    }
   }
 
   Future<void> reload() async {
@@ -361,6 +375,8 @@ class NavController extends ChangeNotifier {
   @override
   void dispose() {
     closed = true;
+    road.removeListener(notify);
+    road.dispose();
     client.close();
     timer?.cancel();
     subscription?.cancel();

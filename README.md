@@ -1,15 +1,25 @@
 # Taxi Xanh · Android Auto Dashboard
 
-**Giai đoạn 4 — v0.4.1: bản đồ 3D nghiêng 60°, mũi tên xe và camera tự thu phóng.** Giữ lịch/sự kiện đã nghiệm thu, sửa PNG trong suốt và luôn hiện logo lớn ngay dưới QR. Thanh đã yêu cầu tiếp tục GĐ4 ngay sau bản sửa QR; không chờ thêm xác nhận QR.
+**Giai đoạn 5 — v0.5.0: tốc độ giới hạn, biển phía trước và ghim riêng.** Thanh xác nhận bản 3D v0.4.1 ổn và yêu cầu tiếp tục. Giữ bản đồ 60°, lịch, QR và vòng đời GPS đã có.
 
 ## Cài và bật vị trí trên điện thoại
 
-1. Cài đè [APK arm64 nightly](https://github.com/ThanhTaxiXanh/TaxiDriveAADashboad/releases/download/nightly/app-arm64-v8a-release.apk) khi Releases ghi **Giai đoạn 4**. Không đổi khóa ký hoặc gỡ app.
+1. Cài đè [APK arm64 nightly](https://github.com/ThanhTaxiXanh/TaxiDriveAADashboad/releases/download/nightly/app-arm64-v8a-release.apk) khi Releases ghi **Giai đoạn 5 · v0.5.0**. Không đổi khóa ký hoặc gỡ app.
 2. Mở **Bản đồ và dẫn đường → Bật vị trí** khi app đang mở. Cấp quyền vị trí khi dùng app, bật **Vị trí chính xác**, cho phép thông báo để thấy nút **Dừng vị trí**. Sau đó bấm **Cho phép vị trí Luôn luôn → Mở cài đặt**, vào **Quyền ứng dụng → Vị trí → Luôn cho phép** (Android 13), giữ **Vị trí chính xác**. Đây là quyền riêng, cần anh bật trong cài đặt hệ thống. Dịch vụ foreground tiếp tục GPS khi điện thoại tắt màn hình.
 3. Chờ dòng **GPS chính xác**. Nếu chưa có, bật GPS hệ thống/ra nơi thoáng; mở **Quyền ứng dụng** nếu trước đó từ chối. Giọng đọc cần bộ giọng Việt ngoại tuyến đã cài trong máy; nút **Cài dữ liệu giọng đọc** mở công cụ hệ thống. Thiếu giọng vẫn có chữ chỉ đường.
 4. Nhập tên địa điểm rồi bấm **Tìm địa điểm**, chọn **Dẫn đường**. Có thể nhập `vĩ độ,kinh độ` để bỏ qua tra cứu mạng. Bấm sao để lưu yêu thích. Trên xe chỉ chọn **Yêu thích và gần đây**, không có bàn phím.
 5. Kết nối Android Auto. Cột trái hiện bản đồ OpenFreeMap 3D nghiêng 60°, mũi tên xanh viền trắng cả khi chưa dẫn đường, tuyến xanh, thao tác tiếp theo/khoảng cách, tốc độ GPS và quãng đường/ETA ước tính. Có +/−, **Theo xe**, sao để chọn nơi đã lưu. Kéo/zoom bản đồ sẽ ngừng theo xe; bấm **Theo xe** để về tọa độ gần nhất và bật theo xe trở lại, kể cả GPS đang cũ/yếu. Tọa độ cũ có mũi tên xám; app xin vị trí mới, không phát chỉ dẫn rẽ khi GPS cũ. Camera tự mở rộng khi tốc độ tăng, phóng gần hơn khi sắp rẽ. Bản đồ vẫn nghiêng 60° khi chưa chọn tuyến. Pinch từ host thay zoom ở tâm bản đồ.
 6. Dùng **Dừng dẫn đường** để xóa tuyến đang chạy. GPS tự dừng khoảng 2,5 giây sau khi Android Auto ngắt kết nối; kết nối lại sẽ tự bật nếu quyền và hệ thống cho phép. Đổi trang/bấm Home trên xe vẫn giữ GPS. Có thể bấm **Dừng vị trí** trong app hoặc thông báo bất cứ lúc nào; tự bật lại ở lần kết nối mới hoặc bấm Bật vị trí. Nếu Xiaomi chặn khởi động nền, mở app điện thoại và bấm Bật vị trí; kiểm tra tiết kiệm pin cho app nếu cần.
+
+## Bật tốc độ và biển báo
+
+1. Mở **Bản đồ và dẫn đường → Tốc độ và biển báo → Tải / cập nhật dữ liệu Việt Nam** bằng Wi-Fi trước chuyến đi. Chờ báo gói sẵn sàng ngoại tuyến; dung lượng thực nằm trong [manifest gói](https://github.com/ThanhTaxiXanh/TaxiDriveAADashboad/releases/download/road-data/manifest.json). Gói riêng, không cần cài lại APK mỗi tháng.
+2. Loại xe mặc định **Ô tô con · VF e34**. Hạn tốc hiện cạnh tốc độ GPS, ghi nguồn **ghim của anh**, **OSM** hoặc **ước tính**. Số nét đứt chỉ là suy đoán, có thể tắt. Chưa đủ dữ liệu/khớp đường/GPS thì hiện **—**, không gán mặc định 120 cho cao tốc.
+3. Biển phía trước có hướng và khoảng cách; tối đa ba mục. Nhãn **Đoạn OSM** là đầu đoạn có dữ liệu tốc độ, không xác nhận vị trí biển thật. Vượt mức + dung sai 5 km/h đổi cam/nhấp nháy; có chỉnh dung sai và bật bíp (mặc định tắt; không bíp mức ước tính).
+4. **Nhấn giữ bản đồ trên điện thoại** để ghim; chạm ghim hoặc mở danh sách để sửa/xóa. Chọn loại biển, tốc độ, hướng xe đi (0° Bắc, 90° Đông) hoặc hai chiều. Ghim hạn tốc áp dụng sau vị trí đó trong phạm vi chọn, mặc định 300 m, ưu tiên hơn OSM. Nên tải gói trước để gắn đúng đoạn đường.
+5. **Xuất ghim JSON** để sao lưu riêng. **Nhập ghim JSON** thay danh sách hiện tại sau khi kiểm tệp. Ghim/vị trí không đưa lên repo, gói công khai hoặc Chia sẻ nhật ký. Trên xe chỉ xem cảnh báo; chỉnh ghim trên điện thoại.
+
+Dữ liệu có thể thiếu hoặc sai; luôn tuân theo biển thực tế. Không nhận diện biển bằng camera. Gói OSM Việt Nam dựng hằng tháng, số liệu và nguồn trong [ROAD_DATA.md](docs/ROAD_DATA.md). Sau khi tải, tốc độ/biển báo dùng offline; nền bản đồ vùng chưa cache và tuyến mới vẫn cần mạng.
 
 ## QR và logo đã sửa
 
@@ -21,9 +31,9 @@
 
 Chuẩn bị điểm đến và quyền khi xe đang đỗ. Đi trọn một tuyến trong thành phố, kiểm tra vị trí/hướng, câu rẽ Việt, âm thanh và khoảng cách. Thử ra khỏi tuyến để tính lại; thử tắt mạng ngắn ở vùng vừa xem để kiểm tra bản đồ/tuyến còn hiện. Sau đó kết nối lại có dây/không dây và kiểm tra QR/lịch/Home.
 
-GPS cũ hơn 10 giây hoặc sai số trên 50 m ngừng phát chỉ dẫn; lệch tuyến trên 50 m qua ba fix tốt mới xin tuyến mới. Hai engine dùng một khóa tính đường, ít nhất 5 giây giữa các lần; lỗi mạng chờ 30 giây. Tuyến đã tải được giữ riêng; 3D có cache HTTP riêng tối đa 300 MB, dùng lại tài nguyên còn hạn theo cache header máy chủ; 2D có cache tiles riêng tối đa 300 MB. Đây là cache vùng vừa xem, không phải gói bản đồ offline; vùng chưa tải/tuyến mới cần mạng. Chưa có tìm đường ngoại tuyến hoặc giao thông trực tiếp. ETA chỉ ước tính. Biển báo/giới hạn tốc độ thuộc GĐ5, chưa được triển khai.
+GPS cũ hơn 10 giây hoặc sai số trên 50 m ngừng phát chỉ dẫn; lệch tuyến trên 50 m qua ba fix tốt mới xin tuyến mới. Hai engine dùng một khóa tính đường, ít nhất 5 giây giữa các lần; lỗi mạng chờ 30 giây. Tuyến đã tải được giữ riêng; 3D có cache HTTP riêng tối đa 300 MB, dùng lại tài nguyên còn hạn theo cache header máy chủ; 2D có cache tiles riêng tối đa 300 MB. Đây là cache vùng vừa xem, không phải gói bản đồ offline; vùng chưa tải/tuyến mới cần mạng. Chưa có tìm đường ngoại tuyến hoặc giao thông trực tiếp. ETA chỉ ước tính. GĐ5 đã bổ sung gói đường riêng và ghim, chưa có media/YouTube GĐ6.
 
-Cổng GĐ4 chờ Thanh xác nhận **đi trọn một tuyến thật và bản đồ còn khi mất mạng ngắn** trước GĐ5.
+Cổng GĐ5: kiểm tra khoảng cách báo trước ở **ba biển thực tế, sai lệch dưới 50 m**, thử chiều ngược lại và mất mạng sau khi cài gói. Bộ GPX/OSM mẫu trong CI không thay cho kiểm tra trên xe. Chờ Thanh nghiệm thu trước GĐ6.
 
 ## Dịch vụ, riêng tư và kiểm tra
 
@@ -33,6 +43,6 @@ Cổng GĐ4 chờ Thanh xác nhận **đi trọn một tuyến thật và bản 
 - Android LocationManager + foreground service và TextToSpeech dùng chung cả hai engine. Cầu nối navigation riêng, không dùng kênh nhật ký kỹ thuật; native chống phát câu trùng và phản hồi tuyến cũ. Các thư viện Dart thực hiện luật tuyến, hiển thị và mạng.
 - CI unit/widget kiểm tra alpha/QR, lịch, hình học tuyến, polyline6, Valhalla/OSRM, stale GPS, lease giữa engine, cấu hình HTTPS, camera theo tốc độ/chỗ rẽ, hồi quy về vị trí sau khi kéo/zoom với GPS cũ, GeoJSON/nhà 3D và bố cục cột hẹp. APK arm64 được kiểm tra có thư viện MapLibre và shader GPU. Test headless không khởi tạo GPU thật. **Public map service probes** dùng duy nhất tọa độ mẫu công khai ở trung tâm Bắc Giang; báo khả dụng riêng, không thay thử xe thật.
 
-[Chi tiết bản đồ và nguồn](docs/NAVIGATION_NOTES.md) · [QR](docs/QR_NOTES.md) · [Lịch](docs/CALENDAR_NOTES.md) · [Đặc tả](docs/SPECIFICATION.md) · [Nghiên cứu Fermata](docs/FERMATA_REVIEW.md).
+[Tốc độ/biển báo và dữ liệu](docs/ROAD_DATA.md) · [Chi tiết bản đồ và nguồn](docs/NAVIGATION_NOTES.md) · [QR](docs/QR_NOTES.md) · [Lịch](docs/CALENDAR_NOTES.md) · [Đặc tả](docs/SPECIFICATION.md) · [Nghiên cứu Fermata](docs/FERMATA_REVIEW.md).
 
 Giữ ciphertext android/signing/personal.jks.gpg và Secret ANDROID_SIGNING_PASSWORD; không tạo lại khóa. Noto Sans theo SIL OFL, giấy phép đóng gói cùng APK. Thông báo giấy phép các gói được Flutter đóng gói; bản đồ/dữ liệu OSM theo ghi nguồn/ODbL.

@@ -1,0 +1,19 @@
+name: Public road data sources
+on:
+  workflow_dispatch:
+  push:
+    branches: ['feat/phase-5-road-data']
+    paths: ['tools/road_sources.py', '.github/workflows/road-sources.yml']
+permissions:
+  contents: read
+jobs:
+  sources:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - run: python3 tools/road_sources.py
+      - uses: actions/upload-artifact@v4.6.2
+        with:
+          name: road-source-report
+          path: road-source-report.json

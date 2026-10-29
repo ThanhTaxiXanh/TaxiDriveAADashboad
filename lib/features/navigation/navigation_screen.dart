@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'map_panel.dart';
 import 'nav_controller.dart';
 import 'nav_models.dart';
+import '../road_data/road_screen.dart';
 
 class NavigationScreen extends StatefulWidget {
   const NavigationScreen({super.key, required this.navigation});
@@ -116,6 +117,15 @@ class _NavigationScreenState extends State<NavigationScreen> {
                   : 'Cho phép vị trí Luôn luôn',
             ),
           ),
+          FilledButton.icon(
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => RoadScreen(navigation: nav),
+              ),
+            ),
+            icon: const Icon(Icons.traffic),
+            label: const Text('Tốc độ và biển báo'),
+          ),
           SwitchListTile(
             title: const Text('Bản đồ 3D · nghiêng 60°'),
             subtitle: const Text('Tắt để dùng bản đồ 2D dự phòng'),
@@ -160,7 +170,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
             onPressed: () => showLicensePage(
               context: context,
               applicationName: 'Taxi Xanh',
-              applicationVersion: '0.4.1',
+              applicationVersion: '0.5.0',
             ),
             child: const Text('Giấy phép thư viện và bản đồ'),
           ),

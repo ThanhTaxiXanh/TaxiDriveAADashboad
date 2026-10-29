@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<gpx version="1.1" creator="TaxiXanh synthetic replay" xmlns="http://www.topografix.com/GPX/1/1"><trk><name>Synthetic L route</name><trkseg>
+<trkpt lat="21.282" lon="106.194"><extensions><speed>25</speed><bearing>0</bearing></extensions></trkpt>
+<trkpt lat="21.284" lon="106.194"><extensions><speed>25</speed><bearing>0</bearing></extensions></trkpt>
+<trkpt lat="21.2855" lon="106.194"><extensions><speed>20</speed><bearing>0</bearing></extensions></trkpt>
+<trkpt lat="21.2864" lon="106.194"><extensions><speed>20</speed><bearing>0</bearing></extensions></trkpt>
+<trkpt lat="21.2885" lon="106.194"><extensions><speed>25</speed><bearing>0</bearing></extensions></trkpt>
+<trkpt lat="21.291" lon="106.196"><extensions><speed>30</speed><bearing>90</bearing></extensions></trkpt>
+</trkseg></trk></gpx>

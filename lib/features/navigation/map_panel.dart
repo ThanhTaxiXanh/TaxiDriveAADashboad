@@ -12,6 +12,9 @@ import 'vehicle_marker.dart';
 import 'map_widgets.dart';
 import 'map_style_client.dart';
 import 'gpu_map_panel.dart';
+import '../road_data/road_screen.dart';
+import '../road_data/road_widgets.dart';
+import '../road_data/sign_painter.dart';
 export 'map_widgets.dart';
 
 class MapPanel extends StatefulWidget {
@@ -229,6 +232,9 @@ class _FlatMapPanelState extends State<FlatMapPanel> {
                   initialZoom: nav.fix == null ? 13 : 16,
                   minZoom: 3,
                   maxZoom: 20,
+                  onLongPress: widget.car
+                      ? null
+                      : (_, point) => editPinAt(context, nav, point),
                   onMapReady: () {
                     ready = true;
                     changed();
@@ -267,6 +273,23 @@ class _FlatMapPanelState extends State<FlatMapPanel> {
                     ),
                   MarkerLayer(
                     markers: [
+                      for (final pin in nav.road.pins)
+                        Marker(
+                          point: pin.point,
+                          width: 36,
+                          height: 36,
+                          rotate: true,
+                          child: GestureDetector(
+                            onTap: widget.car
+                                ? null
+                                : () => editPinAt(context, nav, pin.point),
+                            child: SignIcon(
+                              kind: pin.kind,
+                              value: pin.value,
+                              size: 36,
+                            ),
+                          ),
+                        ),
                       if (nav.goal != null)
                         Marker(
                           point: nav.goal!.point,
@@ -300,6 +323,12 @@ class _FlatMapPanelState extends State<FlatMapPanel> {
                 ],
               ),
             ),
+            Positioned(
+              left: 4,
+              right: 68,
+              top: 4,
+              child: RoadWarnings(controller: nav.road),
+            ),
             if (loading)
               const Positioned(
                 top: 0,
@@ -331,67 +360,73 @@ class _FlatMapPanelState extends State<FlatMapPanel> {
               ),
             Positioned(
               right: 4,
+              top: 4,
               bottom: 4,
-              child: Card(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      tooltip: 'Phóng to bản đồ',
-                      onPressed: () => zoom(1),
-                      icon: const Icon(Icons.add),
+              child: Align(
+                alignment: Alignment.bottomRight,
+                child: SingleChildScrollView(
+                  child: Card(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          tooltip: 'Phóng to bản đồ',
+                          onPressed: () => zoom(1),
+                          icon: const Icon(Icons.add),
+                        ),
+                        IconButton(
+                          tooltip: 'Thu nhỏ bản đồ',
+                          onPressed: () => zoom(-1),
+                          icon: const Icon(Icons.remove),
+                        ),
+                        IconButton(
+                          tooltip: 'Theo xe',
+                          onPressed: () async {
+                            setState(() {
+                              follow = true;
+                              fixTime = null;
+                            });
+                            if (nav.fix != null && ready) {
+                              camera.move(
+                                nav.fix!.point,
+                                FollowCamera.zoom(
+                                  speedKmh: nav.fix!.speed * 3.6,
+                                  navigating: nav.active && nav.precise,
+                                  turnMeters: nav.nextTurn == null
+                                      ? null
+                                      : nav.turnDistance,
+                                ),
+                              );
+                              camera.rotate(
+                                nav.settings['headingUp'] != false
+                                    ? -nav.bearing
+                                    : 0,
+                              );
+                            }
+                            changed();
+                            if (nav.fix == null || !nav.precise) {
+                              try {
+                                await nav.locate();
+                              } catch (_) {}
+                              if (mounted && nav.fix == null)
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text(nav.status)),
+                                );
+                            }
+                          },
+                          icon: Icon(
+                            Icons.my_location,
+                            color: follow ? Colors.green : null,
+                          ),
+                        ),
+                        IconButton(
+                          tooltip: 'Điểm đến đã lưu',
+                          onPressed: () => showPlaces(context, nav),
+                          icon: const Icon(Icons.star),
+                        ),
+                      ],
                     ),
-                    IconButton(
-                      tooltip: 'Thu nhỏ bản đồ',
-                      onPressed: () => zoom(-1),
-                      icon: const Icon(Icons.remove),
-                    ),
-                    IconButton(
-                      tooltip: 'Theo xe',
-                      onPressed: () async {
-                        setState(() {
-                          follow = true;
-                          fixTime = null;
-                        });
-                        if (nav.fix != null && ready) {
-                          camera.move(
-                            nav.fix!.point,
-                            FollowCamera.zoom(
-                              speedKmh: nav.fix!.speed * 3.6,
-                              navigating: nav.active && nav.precise,
-                              turnMeters: nav.nextTurn == null
-                                  ? null
-                                  : nav.turnDistance,
-                            ),
-                          );
-                          camera.rotate(
-                            nav.settings['headingUp'] != false
-                                ? -nav.bearing
-                                : 0,
-                          );
-                        }
-                        changed();
-                        if (nav.fix == null || !nav.precise) {
-                          try {
-                            await nav.locate();
-                          } catch (_) {}
-                          if (mounted && nav.fix == null)
-                            ScaffoldMessenger.of(
-                              context,
-                            ).showSnackBar(SnackBar(content: Text(nav.status)));
-                        }
-                      },
-                      icon: Icon(
-                        Icons.my_location,
-                        color: follow ? Colors.green : null,
-                      ),
-                    ),
-                    IconButton(
-                      tooltip: 'Điểm đến đã lưu',
-                      onPressed: () => showPlaces(context, nav),
-                      icon: const Icon(Icons.star),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),

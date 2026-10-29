@@ -25,16 +25,23 @@ jobs:
           flutter-version: '3.47.1'
           cache: true
       - run: python3 tools/test_signing.py
+      - run: python3 tools/road_data/test_pack.py
       - run: bash tools/bootstrap_android.sh
       - run: flutter pub get
       - run: python3 tools/report_dependencies.py
       - name: Check formatting
+        id: formatting
+        continue-on-error: true
         run: |
           if ! dart format --output=none --set-exit-if-changed lib test tools/ui_preview_test.dart; then
             python3 tools/show_format.py
             exit 1
           fi
       - run: flutter analyze
+      - name: Native SQLite R-tree contract
+        run: |
+          python3 tools/build_road_fixture.py
+          bash android/gradlew -p tools/road_jvm test --no-daemon
       - run: flutter test --coverage
       - name: Export first-review golden previews
         timeout-minutes: 3
@@ -44,6 +51,9 @@ jobs:
           name: ui-previews
           path: build/previews/*.png
           if-no-files-found: error
+      - name: Require formatted sources
+        if: steps.formatting.outcome != 'success'
+        run: exit 1
       - name: Configure personal signing if available
         if: github.event_name != 'pull_request'
         env:
@@ -109,8 +119,8 @@ jobs:
           TARGET_SHA: ${{ github.sha }}
         run: |
           if ! gh release view nightly >/dev/null 2>&1; then
-            gh release create nightly --target "$TARGET_SHA" --prerelease --title 'Giai đoạn 4 · Bản đồ 3D v0.4.1' --notes 'Bản đồ 3D nghiêng 60 độ, marker mũi tên, camera theo tốc độ và chỗ rẽ; sửa Theo xe; quyền Luôn luôn và GPS theo kết nối Android Auto.'
+            gh release create nightly --target "$TARGET_SHA" --prerelease --title 'Giai đoạn 5 · Tốc độ và biển báo v0.5.0' --notes 'v0.5.0: dữ liệu đường Việt Nam offline, hạn tốc OSM/ghim/ước tính, cảnh báo biển phía trước và ghim trên điện thoại. Giữ bản đồ 3D 60 độ.'
           fi
           gh api --method PATCH "repos/$GH_REPO/git/refs/tags/nightly" -f sha="$TARGET_SHA" -F force=true
-          gh release edit nightly --prerelease --title 'Giai đoạn 4 · Bản đồ 3D v0.4.1' --notes 'v0.4.1: bản đồ 3D 60 độ và mũi tên luôn hiện khi có GPS; zoom theo tốc độ/chỗ rẽ; sửa nút Theo xe; tự dừng GPS khi ngắt Android Auto. Mở Bản đồ và dẫn đường trên điện thoại để cấp Vị trí chính xác và Luôn luôn. Có công tắc 2D dự phòng. Cần thử thực tế trên VF e34.'
+          gh release edit nightly --prerelease --title 'Giai đoạn 5 · Tốc độ và biển báo v0.5.0' --notes 'v0.5.0: vào Bản đồ và dẫn đường → Tốc độ và biển báo → Tải/cập nhật dữ liệu Việt Nam trước chuyến đi. Nhấn giữ bản đồ điện thoại để ghim biển. Số nét đứt là ước tính. Dữ liệu có thể thiếu/sai; tuân theo biển thực tế. Cần Thanh kiểm tra khoảng cách tại 3 biển trên VF e34.'
           gh release upload nightly signed-apks/*.apk --clobber
