@@ -50,6 +50,7 @@ class MediaSnapshot {
     this.title = 'Chưa chọn bài',
     this.artist = '',
     this.playing = false,
+    this.wantedPlaying = false,
     this.loading = false,
     this.position = 0,
     this.duration = 0,
@@ -67,6 +68,7 @@ class MediaSnapshot {
   final String source, title, artist, message;
   final Map<String, dynamic> external;
   final bool playing,
+      wantedPlaying,
       loading,
       videoSafe,
       videoRequested,
@@ -82,6 +84,7 @@ class MediaSnapshot {
     artist: j['artist'] as String? ?? '',
     message: j['message'] as String? ?? '',
     playing: j['playing'] == true,
+    wantedPlaying: j['wantedPlaying'] == true,
     loading: j['loading'] == true,
     position: (j['position'] as num? ?? 0).toInt(),
     duration: (j['duration'] as num? ?? 0).toInt(),
@@ -97,7 +100,9 @@ class MediaSnapshot {
     aspect: (j['videoAspect'] as num? ?? 16 / 9).toDouble(),
   );
   bool get isExternal => source == 'external';
-  bool get isPlaying => isExternal ? external['playing'] == true : playing;
+  bool get isPlaying => isExternal
+      ? external['playing'] == true
+      : playing || loading && wantedPlaying;
   String get displayTitle => isExternal
       ? external['title'] as String? ?? 'Chưa có bài đang phát'
       : title;

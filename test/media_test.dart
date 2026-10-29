@@ -62,6 +62,20 @@ void main() {
     expect(internal.canNext, true);
     expect(internal.canPrevious, true);
     expect(internal.canSeek, false);
+    final buffering = MediaSnapshot.fromJson({
+      'source': 'youtube',
+      'loading': true,
+      'wantedPlaying': true,
+      'queueCount': 1,
+    });
+    final paused = MediaSnapshot.fromJson({
+      'source': 'youtube',
+      'loading': true,
+      'wantedPlaying': false,
+      'queueCount': 1,
+    });
+    expect(buffering.isPlaying, true);
+    expect(paused.isPlaying, false);
   });
   testWidgets(
     'Only resolver worker extracts once per token; metadata survives partial events',
@@ -195,43 +209,44 @@ void main() {
     },
   );
   for (final height in [50.0, 64.0, 110.0, 180.0, 260.0]) {
-    for (final scale in [1.0,1.6]) {
-    testWidgets('Media row fits 194 px width and height $height at scale $scale', (
-      tester,
-    ) async {
-      final controller = MediaController(connected: false);
-      addTearDown(controller.dispose);
-      controller.accept({
-        'source': 'external',
-        'external': {
-          'available': true,
-          'actions': 4 + 16 + 32 + 256,
-          'title': 'Tên bài hát tiếng Việt khá dài để thử bố cục',
-          'artist': 'Nghệ sĩ mẫu',
-          'duration': 180000,
-          'position': 12000,
-        },
-      });
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: Center(
-              child: SizedBox(
-                width: 194,
-                height: height,
-                child: MediaPanel(controller: controller, fontScale: scale),
+    for (final scale in [1.0, 1.6]) {
+      testWidgets(
+        'Media row fits 194 px width and height $height at scale $scale',
+        (tester) async {
+          final controller = MediaController(connected: false);
+          addTearDown(controller.dispose);
+          controller.accept({
+            'source': 'external',
+            'external': {
+              'available': true,
+              'actions': 4 + 16 + 32 + 256,
+              'title': 'Tên bài hát tiếng Việt khá dài để thử bố cục',
+              'artist': 'Nghệ sĩ mẫu',
+              'duration': 180000,
+              'position': 12000,
+            },
+          });
+          await tester.pumpWidget(
+            MaterialApp(
+              home: Scaffold(
+                body: Center(
+                  child: SizedBox(
+                    width: 194,
+                    height: height,
+                    child: MediaPanel(controller: controller, fontScale: scale),
+                  ),
+                ),
               ),
             ),
-          ),
-        ),
+          );
+          await tester.pump();
+          expect(tester.takeException(), isNull);
+          expect(find.byTooltip('Bài trước'), findsOneWidget);
+          expect(find.byTooltip('Bài tiếp'), findsOneWidget);
+          await tester.pumpWidget(const SizedBox());
+        },
       );
-      await tester.pump();
-      expect(tester.takeException(), isNull);
-      expect(find.byTooltip('Bài trước'), findsOneWidget);
-      expect(find.byTooltip('Bài tiếp'), findsOneWidget);
-      await tester.pumpWidget(const SizedBox());
-    });
-  }
+    }
   }
   testWidgets(
     'Moving/stale GPS keeps video texture absent and car has no search field',

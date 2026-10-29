@@ -404,7 +404,10 @@ class _DashboardFrameState extends State<DashboardFrame> {
                                             fontScale: config.fontScale,
                                             onTap: togglePayment,
                                           )
-                                        : MediaPanel(controller: widget.media, fontScale: config.fontScale),
+                                        : MediaPanel(
+                                            controller: widget.media,
+                                            fontScale: config.fontScale,
+                                          ),
                                   ),
                                 ),
                               ),

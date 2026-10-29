@@ -6,7 +6,12 @@ import 'media_controller.dart';
 import 'media_models.dart';
 
 class MediaPanel extends StatelessWidget {
-  const MediaPanel({super.key, this.controller, this.onOpen, this.fontScale = 1});
+  const MediaPanel({
+    super.key,
+    this.controller,
+    this.onOpen,
+    this.fontScale = 1,
+  });
   final MediaController? controller;
   final VoidCallback? onOpen;
   final double fontScale;
@@ -35,7 +40,8 @@ class MediaPanel extends StatelessWidget {
       final titleHeight = scaler.scale(titleSize) * 1.2;
       final artistHeight = scaler.scale(artistSize) * 1.2;
       final title = bounds.maxHeight >= 8 + 52 + titleHeight;
-      final tall = bounds.maxHeight >=
+      final tall =
+          bounds.maxHeight >=
           12 + 52 + titleHeight + artistHeight + 24 + scaler.scale(16) * 1.5;
       final art = tall && bounds.maxHeight >= 230 ? state.artwork : null;
       return Padding(
@@ -68,7 +74,11 @@ class MediaPanel extends StatelessWidget {
                             state.displayTitle,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: TextStyle(fontSize: titleSize, height: 1.2, fontWeight: FontWeight.w600),
+                            style: TextStyle(
+                              fontSize: titleSize,
+                              height: 1.2,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                           if (tall)
                             Text(
@@ -77,7 +87,10 @@ class MediaPanel extends StatelessWidget {
                                   : state.displayArtist,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: TextStyle(fontSize: artistSize, height: 1.2),
+                              style: TextStyle(
+                                fontSize: artistSize,
+                                height: 1.2,
+                              ),
                             ),
                         ],
                       ),
