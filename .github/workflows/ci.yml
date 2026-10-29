@@ -82,6 +82,8 @@ jobs:
           KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
           KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
         run: python3 tools/configure_signing.py
+      - name: MediaSession and media button Android contract
+        run: bash android/gradlew :app:testDebugUnitTest --no-daemon
       - name: Build diagnostic APK
         run: flutter build apk --debug --build-number=${{ github.run_number }}
       - name: Require formatted sources
@@ -142,8 +144,8 @@ jobs:
           TARGET_SHA: ${{ github.sha }}
         run: |
           if ! gh release view nightly >/dev/null 2>&1; then
-            gh release create nightly --target "$TARGET_SHA" --prerelease --title 'Giai đoạn 6 · Nhạc và YouTube v0.6.0' --notes 'v0.6.0: điều khiển app nhạc, playlist YouTube công khai, phát nền dùng chung và video khóa theo GPS.'
+            gh release create nightly --target "$TARGET_SHA" --prerelease --title 'Giai đoạn 6 · Nhạc và YouTube v0.6.1' --notes 'v0.6.1: bổ sung phiên hàng đợi và phím media chuẩn Android Auto/vô lăng; nhường quyền phím cho app nhạc khi đổi nguồn. Thêm client YouTube tương thích và kiểm tra byte media, fallback video360p. Âm thanh tiếp tục khi di chuyển; giữ khóa hình khi xe chạy hoặc GPS không tin cậy.'
           fi
           gh api --method PATCH "repos/$GH_REPO/git/refs/tags/nightly" -f sha="$TARGET_SHA" -F force=true
-          gh release edit nightly --prerelease --title 'Giai đoạn 6 · Nhạc và YouTube v0.6.0' --notes 'v0.6.0: mở Nhạc và YouTube trên điện thoại; cấp Truy cập thông báo để điều khiển app nhạc khác. Tìm và lưu video/playlist công khai trước chuyến đi. Trên xe chọn danh sách đã lưu; mặc định âm thanh. Video chỉ bật khi GPS mới/chính xác và xe dưới 5 km/h, tự khóa khi di chuyển hoặc mất vị trí. Cần thử phát playlist 30 phút, âm thanh dẫn đường và khóa video trên VF e34. Gói đường, QR và khóa ký giữ nguyên.'
+          gh release edit nightly --prerelease --title 'Giai đoạn 6 · Nhạc và YouTube v0.6.1' --notes 'v0.6.1: sửa phím vô lăng/trước-sau cho hàng đợi YouTube và trả quyền nhận phím về app nhạc được chọn khi đổi nguồn. Thêm client YouTube tương thích, kiểm tra dữ liệu media trước phát và fallback video360p nếu cần. Mở Nhạc và YouTube, cấp Truy cập thông báo để điều khiển app nhạc. Âm thanh vẫn phát khi di chuyển; hình chỉ xem khi đỗ và GPS tin cậy. Cần kiểm tra phím VF e34 và phát YouTube trên Redmi thực tế; không bảo đảm mọi video/mạng.'
           gh release upload nightly signed-apks/*.apk --clobber

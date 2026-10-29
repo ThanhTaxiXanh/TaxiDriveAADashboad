@@ -1,11 +1,15 @@
 import 'package:youtube_explode_dart/youtube_explode_dart.dart' as yt;
 
 import 'media_models.dart';
+import 'youtube_clients.dart';
+import 'youtube_probe.dart';
 
 class YoutubeStreams {
-  const YoutubeStreams(this.audio, this.video);
+  const YoutubeStreams(this.audio, this.video, {this.muxed = false, this.client = 'unknown'});
   final Uri audio;
   final Uri? video;
+  final bool muxed;
+  final String client;
 }
 
 abstract interface class YoutubeStreamProvider {
@@ -37,18 +41,14 @@ class ExplodeStreamProvider implements YoutubeStreamProvider {
       throw const FormatException('ID YouTube không hợp lệ');
     cancelResolve();
     final task = generation;
-    for (final mode in [
-      (yt.YoutubeApiClient.androidSdkless, true),
-      (yt.YoutubeApiClient.androidSdkless, false),
-      (yt.YoutubeApiClient.androidVr, false),
-    ]) {
+    for (final mode in youtubeClients) {
       if (task != generation) throw const FormatException('Đã đổi bài');
       final client = yt.YoutubeExplode();
       activeResolver = client;
       try {
         final manifest = await client.videos.streams
-            .getManifest(id, ytClients: [mode.$1], requireWatchPage: mode.$2)
-            .timeout(const Duration(seconds: 10));
+            .getManifest(id, ytClients: [mode.$2], requireWatchPage: false)
+            .timeout(const Duration(seconds: 7));
         if (task != generation) throw const FormatException('Đã đổi bài');
         final audio =
             manifest.audioOnly.where((s) => s.fragments.isEmpty).toList()
@@ -63,7 +63,7 @@ class ExplodeStreamProvider implements YoutubeStreamProvider {
                         a.bitrate.bitsPerSecond,
                       );
               });
-        if (audio.isEmpty) continue;
+
         final video =
             manifest.videoOnly
                 .where(
@@ -80,7 +80,19 @@ class ExplodeStreamProvider implements YoutubeStreamProvider {
                   a.videoResolution.height,
                 ),
               );
-        return YoutubeStreams(audio.first.url, video.firstOrNull?.url);
+        if (audio.isNotEmpty && await probeYoutubeMedia(audio.first.url)) {
+          if (task != generation) throw const FormatException('Đã đổi bài');
+          final picture = mode.$1 == 'vision' && video.isNotEmpty && await probeYoutubeMedia(video.first.url)
+              ? video.first.url : null;
+          if (task != generation) throw const FormatException('Đã đổi bài');
+          return YoutubeStreams(audio.first.url, picture, client: mode.$1);
+        }
+        final muxed = manifest.muxed.where((s) => s.fragments.isEmpty && s.container == yt.StreamContainer.mp4 && s.videoResolution.height <= 360).toList()
+          ..sort((a,b) => b.videoResolution.height.compareTo(a.videoResolution.height));
+        if (muxed.isNotEmpty && await probeYoutubeMedia(muxed.first.url)) {
+          if (task != generation) throw const FormatException('Đã đổi bài');
+          return YoutubeStreams(muxed.first.url, null, muxed: true, client: mode.$1);
+        }
       } catch (_) {
         if (task != generation) rethrow;
       } finally {

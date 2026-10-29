@@ -79,7 +79,20 @@ class MediaState(private val app: DashboardApplication) {
     fun add(sink: EventChannel.EventSink) { sinks.add(sink); ensureTick(); external.refresh(); sink.success(snapshot()) }
     fun remove(sink: EventChannel.EventSink?) { sinks.remove(sink); stopTickIfIdle() }
     private fun stopTickIfIdle() { if (sinks.isEmpty() && service == null) { ticking = false; handler.removeCallbacks(tick) } }
-    fun emit(full: Boolean = false) { revision++; if (sinks.isNotEmpty()) { val raw = snapshot(full); sinks.toList().forEach { it.success(raw) } } }
+    fun emit(full: Boolean = false) { revision++; service?.refreshSession(); if (sinks.isNotEmpty()) { val raw = snapshot(full); sinks.toList().forEach { it.success(raw) } } }
+    fun sessionItems(): List<MediaItem> = (0 until queue.length()).map { offset ->
+        val item=queue.getJSONObject(offset)
+        MediaItem.Builder().setMediaId(item.getString("id")).setMediaMetadata(
+            MediaMetadata.Builder().setTitle(item.getString("title")).setArtist(item.getString("author")).build()
+        ).build()
+    }
+    fun sessionIndex(): Int = index
+    fun sessionPending(): Boolean = pending
+    fun sessionPlayWhenReady(): Boolean = wantedPlaying
+    fun selectQueueItem(next: Int) {
+        if (source!="youtube" || next !in 0 until queue.length()) return
+        index=next; wantedPlaying=true; request()
+    }
     private fun current(): JSONObject? = queue.optJSONObject(index)
     fun videoSafe(): Boolean {
         val nav = app.navigation; val fix = nav.fix ?: return false
@@ -133,8 +146,13 @@ class MediaState(private val app: DashboardApplication) {
     private fun persist() { prefs.edit().putString("library",library.toString()).putString("recent",recent.toString()).putString("source",source).apply() }
     fun chooseSource(next: String) {
         require(next == "external" || next == "youtube")
-        if (next == "external") { videoRequested=false; wantedPlaying=false; pending=false; revision++; player?.pause(); message="Điều khiển ứng dụng nhạc" }
-        source=next; persist(); updateVideo(); external.refresh(); emit()
+        source=next
+        if (next == "external") {
+            resumePosition=(player?.currentPosition ?: resumePosition).coerceAtLeast(0)
+            videoRequested=false; wantedPlaying=false; pending=false; revision++
+            player?.pause(); service?.handoffToExternal(); message="Điều khiển ứng dụng nhạc"
+        }
+        persist(); updateVideo(); external.refresh(); emit()
     }
     fun playSaved(id: String, offset: Int = 0) {
         val collection=(0 until library.length()).map { library.getJSONObject(it) }.firstOrNull { it.getString("id")==id }
@@ -154,13 +172,15 @@ class MediaState(private val app: DashboardApplication) {
     fun attach(service: PlaybackService, next: ExoPlayer) {
         this.service=service; player=next; ensureTick()
         next.addListener(object : Player.Listener {
-            override fun onEvents(player: Player, events: Player.Events) { samplePlayTime(); updateVideo(); emit() }
+            override fun onEvents(player: Player, events: Player.Events) { if (this@MediaState.player!==next) return; samplePlayTime(); updateVideo(); emit() }
             override fun onPlaybackStateChanged(state: Int) {
+                if (player!==next) return
                 if (state==Player.STATE_ENDED && wantedPlaying && !pending) {
                     if (index+1<queue.length()) skip(1) else { wantedPlaying=false; message="Đã phát hết danh sách"; emit() }
                 }
             }
             override fun onPlayerError(error: PlaybackException) {
+                if (player!==next) return
                 if (hasVideo && lastAudio!=null && wantedPlaying) {
                     pending=true; resumePosition=next.currentPosition.coerceAtLeast(0)
                     resolved(requestToken,lastAudio,null,false); message="Luồng video chưa phát được; tiếp tục âm thanh"; emit()
@@ -169,13 +189,15 @@ class MediaState(private val app: DashboardApplication) {
                 } else { wantedPlaying=false; pending=false; message="Không phát được luồng này. Kiểm tra mạng hoặc chọn bài khác"; emit() }
             }
             override fun onVideoSizeChanged(size: VideoSize) {
+                if (player!==next) return
                 if (size.width>0 && size.height>0 && (width!=size.width || height!=size.height)) { width=size.width; height=size.height; resizeSurface?.invoke(width,height); updateVideo(forceSurface=true); emit() }
             }
         })
         if (resolver==null) resolver=app.engine("mediaMain")
         emit()
     }
-    fun detach() {
+    fun detach(owner: PlaybackService) {
+        if (service!==owner) return
         samplePlayTime(); wasPlaying=false; service=null; player=null; pending=false; wantedPlaying=false; videoRequested=false; hasVideo=false; lastAudio=null; revision++; visibleVideo=false
         val old=resolver; resolver=null; handler.post { old?.destroy() }; stopTickIfIdle(); emit()
     }
@@ -188,7 +210,7 @@ class MediaState(private val app: DashboardApplication) {
         val token=requestToken
         handler.postDelayed({ if (pending && token==requestToken) { pending=false; wantedPlaying=false; message="YouTube phản hồi quá lâu. Chọn Phát để thử lại"; emit() } },45000)
     }
-    fun resolved(token: String, audioUrl: String?, videoUrl: String?, failed: Boolean) {
+    fun resolved(token: String, audioUrl: String?, videoUrl: String?, failed: Boolean, muxed: Boolean = false) {
         if (!pending || token!=requestToken || current()==null) return
         if (failed) { pending=false; wantedPlaying=false; message="Chưa lấy được luồng YouTube. Thử lại trên mạng điện thoại hoặc chọn bài khác"; emit(); return }
         fun checked(raw: String?): String? {
@@ -206,10 +228,10 @@ class MediaState(private val app: DashboardApplication) {
             .setUserAgent("Mozilla/5.0").setConnectTimeoutMs(15000).setReadTimeoutMs(20000)))
         fun media(url: String)=factory.createMediaSource(MediaItem.Builder().setMediaId(item.getString("id")).setUri(url).setMediaMetadata(metadata).build())
         val audioSource=media(audio)
-        hasVideo=video!=null; pending=false
+        hasVideo=video!=null || muxed; pending=false
         p.setMediaSource(if (video!=null) MergingMediaSource(media(video),audioSource) else audioSource,resumePosition)
         updateVideo(); p.prepare(); p.playWhenReady=wantedPlaying
-        message=if (video==null) "Đang phát âm thanh · bài này chưa có luồng video phù hợp" else "YouTube · phát âm thanh mặc định"
+        message=if (muxed) "Âm thanh từ video 360p · chế độ tương thích dùng thêm dữ liệu" else if (video==null) "Đang phát âm thanh · bài này chưa có luồng video phù hợp" else "YouTube · phát âm thanh mặc định"
         val next=JSONArray().put(item)
         for (i in 0 until recent.length()) if (recent.getJSONObject(i).getString("id")!=item.getString("id") && next.length()<40) next.put(recent.getJSONObject(i))
         recent=next; persist(); emit(true)
@@ -222,12 +244,12 @@ class MediaState(private val app: DashboardApplication) {
     fun command(action: String, position: Long = 0) {
         if (source=="external") { if (action=="play") player?.pause(); external.command(action,position); return }
         when(action) {
-            "play" -> { wantedPlaying=true; if (player==null && !startService()) return; if (player?.playbackState==Player.STATE_IDLE || player==null) request() else player?.play() }
+            "play" -> { wantedPlaying=true; if (player==null && !startService()) return; if (player?.playbackState==Player.STATE_IDLE || player==null) request(keepPosition=true) else { if (player?.playbackState==Player.STATE_ENDED) player?.seekTo(0); player?.play() } }
             "pause" -> { wantedPlaying=false; player?.pause() }
             "next" -> skip(1)
-            "previous" -> if ((player?.currentPosition ?: 0)>3000) player?.seekTo(0) else skip(-1)
+            "previous" -> skip(-1)
             "seek" -> if (!pending) player?.seekTo(position.coerceIn(0,(player?.duration ?: 0).coerceAtLeast(0)))
-            "stop" -> { wantedPlaying=false; pending=false; videoRequested=false; hasVideo=false; lastAudio=null; revision++; player?.stop(); player?.clearMediaItems(); message="Đã dừng YouTube"; service?.stopSelf() }
+            "stop" -> { wantedPlaying=false; pending=false; resumePosition=0; videoRequested=false; hasVideo=false; lastAudio=null; revision++; player?.stop(); player?.clearMediaItems(); message="Đã dừng YouTube"; service?.stopSelf() }
         }
         updateVideo(); emit()
     }

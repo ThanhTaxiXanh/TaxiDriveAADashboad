@@ -24,6 +24,7 @@ android {
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
+    testOptions { unitTests.isIncludeAndroidResources = true }
     if (signingFile.exists()) {
         signingConfigs.create("personal") {
             storeFile = file(signing.getProperty("storeFile"))
@@ -41,6 +42,8 @@ android {
 kotlin { compilerOptions { jvmTarget.set(JvmTarget.JVM_17) } }
 flutter { source = "../.." }
 dependencies {
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.robolectric:robolectric:4.17")
     implementation("androidx.media3:media3-exoplayer:1.11.1")
     implementation("androidx.media3:media3-session:1.11.1")
     implementation("androidx.sqlite:sqlite-bundled:2.7.1")

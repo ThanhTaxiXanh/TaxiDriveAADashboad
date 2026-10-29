@@ -95,6 +95,7 @@ class MediaController extends ChangeNotifier {
           'token': token,
           'audio': streams.audio.toString(),
           'video': streams.video?.toString(),
+          'muxed': streams.muxed,
         });
     } catch (_) {
       if (!closed)

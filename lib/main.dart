@@ -140,7 +140,7 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
           padding: const EdgeInsets.all(20),
           children: [
             const Text(
-              'Giai đoạn 6 · Nhạc và YouTube v0.6.0',
+              'Giai đoạn 6 · Nhạc và YouTube v0.6.1',
               style: TextStyle(fontSize: 22),
             ),
             const SizedBox(height: 16),

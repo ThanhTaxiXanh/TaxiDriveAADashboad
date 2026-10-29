@@ -121,7 +121,7 @@ class MediaSnapshot {
             (hasAction(isPlaying ? 2 : 4) || hasAction(512))
       : queueCount > 0;
   bool get canPrevious =>
-      isExternal ? hasAction(16) : index > 0 || position > 3000;
+      isExternal ? hasAction(16) : index > 0;
   bool get canNext => isExternal ? hasAction(32) : index + 1 < queueCount;
   bool get canSeek =>
       durationMs > 0 && (isExternal ? hasAction(256) : !loading);

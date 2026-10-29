@@ -39,6 +39,8 @@ class ExternalMedia(private val context: Context, private val changed: () -> Uni
     }
     private val listener = MediaSessionManager.OnActiveSessionsChangedListener { update(it ?: emptyList()) }
     val allowed get() = NotificationManagerCompat.getEnabledListenerPackages(context).contains(context.packageName)
+    fun canHandleButtons(): Boolean = allowed && selected != null
+    fun isPlaying(): Boolean = selected?.playbackState?.state == PlaybackState.STATE_PLAYING
     fun refresh() {
         if (!allowed) { disconnect(); return }
         try {

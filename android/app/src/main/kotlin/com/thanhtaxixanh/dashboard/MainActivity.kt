@@ -2,12 +2,29 @@ package com.thanhtaxixanh.dashboard
 
 import android.content.Context
 import android.content.Intent
+import android.view.KeyEvent
 import androidx.core.content.FileProvider
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import java.io.File
 
 class MainActivity : FlutterActivity() {
+    private val mediaState get() = (application as DashboardApplication).media
+    private val mediaButtons by lazy { MediaButtonRouter(
+        { if (mediaState.source=="youtube") mediaState.sessionPlayWhenReady() else mediaState.external.isPlaying() },
+        { mediaState.command(it) }
+    ) }
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        // Only keys delivered to this foreground Activity; Android Auto and
+        // Bluetooth normally dispatch through the active MediaSession instead.
+        val media=mediaState
+        if (media.source=="youtube" && media.sessionItems().isNotEmpty()) {
+            val service=media.service
+            if (service!=null && service.handleMediaKeyEvent(event)) return true
+            if (service==null && mediaButtons.handle(event)) return true
+        } else if (media.source=="external" && media.external.canHandleButtons() && mediaButtons.handle(event)) return true
+        return super.dispatchKeyEvent(event)
+    }
     private var bridge: DashboardBridge? = null
     private var locationPermission: LocationPermission? = null
     private var roadFiles: CalendarFiles? = null
