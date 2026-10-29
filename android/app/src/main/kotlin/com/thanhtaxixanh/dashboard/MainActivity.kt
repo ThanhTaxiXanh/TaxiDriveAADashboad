@@ -10,6 +10,7 @@ import java.io.File
 class MainActivity : FlutterActivity() {
     private var bridge: DashboardBridge? = null
     private var locationPermission: LocationPermission? = null
+    private var roadFiles: CalendarFiles? = null
     private var calendarFiles: CalendarFiles? = null
     override fun provideFlutterEngine(context: Context): FlutterEngine =
         (application as DashboardApplication).engine("main")
@@ -17,6 +18,7 @@ class MainActivity : FlutterActivity() {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         calendarFiles = CalendarFiles(this, flutterEngine)
+        roadFiles = CalendarFiles(this, flutterEngine, road = true)
         locationPermission = LocationPermission(this, flutterEngine)
         bridge = DashboardBridge(flutterEngine, (application as DashboardApplication).diagnostics) {
             val folder = File(cacheDir, "shared-logs").apply { mkdirs() }
@@ -44,7 +46,7 @@ class MainActivity : FlutterActivity() {
         super.onPause()
     }
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        if (calendarFiles?.activityResult(requestCode, resultCode, data) != true) super.onActivityResult(requestCode, resultCode, data)
+        if (calendarFiles?.activityResult(requestCode, resultCode, data) != true && roadFiles?.activityResult(requestCode, resultCode, data) != true) super.onActivityResult(requestCode, resultCode, data)
     }
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         if (locationPermission?.permissionResult(requestCode) != true) super.onRequestPermissionsResult(requestCode, permissions, grantResults)
@@ -52,6 +54,7 @@ class MainActivity : FlutterActivity() {
     override fun cleanUpFlutterEngine(flutterEngine: FlutterEngine) {
         locationPermission?.close(); locationPermission = null
         calendarFiles?.close(); calendarFiles = null
+        roadFiles?.close(); roadFiles = null
         bridge?.close()
         bridge = null
         super.cleanUpFlutterEngine(flutterEngine)

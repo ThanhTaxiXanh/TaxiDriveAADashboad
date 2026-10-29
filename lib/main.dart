@@ -126,7 +126,7 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
           padding: const EdgeInsets.all(20),
           children: [
             const Text(
-              'Giai đoạn 4 · Bản đồ 3D v0.4.1',
+              'Giai đoạn 5 · Tốc độ và biển báo v0.5.0',
               style: TextStyle(fontSize: 22),
             ),
             const SizedBox(height: 16),

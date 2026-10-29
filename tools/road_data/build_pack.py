@@ -154,7 +154,7 @@ class Builder:
                 self.add_sign(f'w{ident}:{kind}:{suffix}',point,kind,value,course,ident,cumulative[index],raw=raw)
             # Way maxspeed is segment data, not evidence of a physical sign.
             if not any('conditional' in k or 'lanes' in k for k in tags if k.startswith('maxspeed')):
-                value = speed(tags.get('maxspeed:'+suffix,tags.get('maxspeed')))
+                value = speed(tags.get('maxspeed:motorcar:'+suffix,tags.get('maxspeed:motorcar',tags.get('maxspeed:motor_vehicle:'+suffix,tags.get('maxspeed:motor_vehicle',tags.get('maxspeed:'+suffix,tags.get('maxspeed')))))))
                 if value: self.add_sign(f'w{ident}:limit:{suffix}',point,'speed',value,course,ident,cumulative[index],'Đầu đoạn OSM · không xác nhận vị trí biển')
             if tags.get('motorcar',tags.get('motor_vehicle',tags.get('access'))) == 'no':
                 self.add_sign(f'w{ident}:access:{suffix}',point,'noCar',heading=course,way=ident,along=cumulative[index],note='Hạn chế OSM · đầu đoạn')

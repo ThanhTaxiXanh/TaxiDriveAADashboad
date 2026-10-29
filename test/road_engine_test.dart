@@ -1,0 +1,100 @@
+import 'dart:convert';
+import 'dart:io';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:taxi_driver_aa_dashboard/features/navigation/nav_models.dart';
+import 'package:taxi_driver_aa_dashboard/features/road_data/road_engine.dart';
+import 'package:taxi_driver_aa_dashboard/features/road_data/road_models.dart';
+
+void main() {
+  final fixture = RoadNearby.fromJson(jsonDecode(File('test/fixtures/roads.generated.json').readAsStringSync()) as Map);
+  final route = NavRoute([const LatLng(21.281, 106.194), const LatLng(21.291, 106.194), const LatLng(21.291, 106.204)], [], 120, 'fixture');
+  final now = DateTime.utc(2026, 10, 29, 12);
+  NavFix fix(LatLng point, {double speed = 15, double heading = 0, int seconds = 0, double accuracy = 5}) => NavFix.fromJson({'lat': point.latitude, 'lon': point.longitude, 'speed': speed, 'bearing': heading, 'time': now.add(Duration(seconds: seconds)).millisecondsSinceEpoch, 'accuracy': accuracy});
+  test('Three speed layers, directional maxspeed and scoped user override', () {
+    const p = LatLng(21.285, 106.194);
+    final match = matchRoad(fixture.roads, p, 0)!;
+    final pin = RoadSign(id: 'user_test', point: const LatLng(21.284, 106.194), kind: 'speed', value: 30, bearing: 0, way: 100, along: meters(const LatLng(21.281, 106.194), const LatLng(21.284, 106.194)), scope: 300);
+    SpeedLimit resolve(MatchedRoad? m, List<RoadSign> pins, {double heading = 0, LatLng position = p}) => resolveLimit(m, pins: pins, position: position, heading: heading, urbanHint: true);
+    expect(resolve(match, [pin]).value, 30);
+    expect(resolve(match, [pin]).source, 'user');
+    expect(resolve(match, []).value, 60);
+    expect(resolve(match, []).estimated, false);
+    final reverse = matchRoad(fixture.roads, p, 180)!;
+    expect(resolve(reverse, [pin], heading: 180).value, 40);
+    const far = LatLng(21.29, 106.194);
+    expect(resolve(matchRoad(fixture.roads, far, 0), [pin], position: far).value, 60);
+    final untagged = RoadEdge(200, match.edge.geometry, {'highway': 'primary'});
+    final estimate = resolve(matchRoad([untagged], p, 0), []);
+    expect(estimate.value, 50);
+    expect(estimate.estimated, true);
+    expect(estimate.label, 'ước tính');
+    expect(resolve(matchRoad(fixture.roads, const LatLng(21.291, 106.201), 90), [], heading: 90, position: const LatLng(21.291, 106.201)).value, isNull);
+  });
+  test('Article 6–9 table; no motorway blanket 120 and no inference from two-way lane count', () {
+    for (final entry in {'car': (90,80), 'heavy': (80,70), 'bus': (70,60), 'towing': (60,50)}.entries) {
+      expect(legalEstimate(entry.key, urban: false, dividedOrTwoLanesOneWay: true, motorway: false), entry.value.$1);
+      expect(legalEstimate(entry.key, urban: false, dividedOrTwoLanesOneWay: false, motorway: false), entry.value.$2);
+      expect(legalEstimate(entry.key, urban: true, dividedOrTwoLanesOneWay: true, motorway: false), 60);
+      expect(legalEstimate(entry.key, urban: true, dividedOrTwoLanesOneWay: false, motorway: false), 50);
+      expect(legalEstimate(entry.key, urban: false, dividedOrTwoLanesOneWay: true, motorway: true), isNull);
+    }
+    for (final e in {'special':40,'quadPassenger':30,'quadCargo':50}.entries) {
+      expect(legalEstimate(e.key, urban: true, dividedOrTwoLanesOneWay: true, motorway: false), e.value);
+    }
+    final geometry = fixture.roads.first.geometry;
+    SpeedLimit evaluate(Map<String,String> tags, {String vehicle = 'car'}) => resolveLimit(matchRoad([RoadEdge(200, geometry, tags)], const LatLng(21.285, 106.194), 0), pins: [], position: const LatLng(21.285, 106.194), heading: 0, urbanHint: false, vehicle: vehicle);
+    expect(evaluate({'highway':'primary','lanes':'4'}).value, 80);
+    expect(evaluate({'highway':'primary','lanes':'2','oneway':'yes'}).value, 90);
+    expect(evaluate({'highway':'motorway','lanes':'3','oneway':'yes'}).value, isNull);
+    expect(evaluate({'highway':'primary','maxspeed':'80','maxspeed:lanes':'60|80'}).value, isNull);
+    expect(evaluate({'highway':'primary','maxspeed':'80','maxspeed:bus:conditional':'60 @ (wet)'}).value, 80);
+    expect(evaluate({'highway':'primary','maxspeed':'80','maxspeed:bus':'60'}, vehicle: 'bus').value, 60);
+    expect(parseMaxspeed('30 mph'), 48);
+    expect(parseMaxspeed('60;80'), isNull);
+    expect(parseMaxspeed('signals'), isNull);
+  });
+  test('GPX replay: along-route distances, turn directions, pass hysteresis and stale GPS', () {
+    final engine = RoadEngine();
+    final points = RegExp(r'<trkpt lat="([^"]+)" lon="([^"]+)">([\s\S]*?)</trkpt>').allMatches(File('test/fixtures/look_ahead.gpx').readAsStringSync()).toList();
+    final statuses = <RoadStatus>[];
+    for (var i = 0; i < points.length; i++) {
+      final sample = points[i], body = sample[3]!;
+      final speed = double.parse(RegExp(r'<speed>([^<]+)</speed>').firstMatch(body)![1]!);
+      final heading = double.parse(RegExp(r'<bearing>([^<]+)</bearing>').firstMatch(body)![1]!);
+      final position = LatLng(double.parse(sample[1]!),double.parse(sample[2]!));
+      final result = engine.evaluate(fix: fix(position, speed: speed, heading: heading, seconds: i), heading: heading, headingKnown: true, nearby: fixture, route: route, version: 'route1', now: now.add(Duration(seconds: i)));
+      statuses.add(result);
+      expect(result.upcoming.length, lessThanOrEqualTo(3));
+      expect(result.upcoming.any((x) => x.sign.kind == 'noLeft'), false, reason: 'Opposite-direction sign must never appear');
+      for (var j = 1; j < result.upcoming.length; j++) { expect(result.upcoming[j].distance, greaterThanOrEqualTo(result.upcoming[j-1].distance)); }
+    }
+    expect(statuses[0].upcoming.first.distance, closeTo(meters(const LatLng(21.282,106.194),const LatLng(21.286,106.194)), 1));
+    expect(statuses[2].upcoming.any((x) => x.sign.kind == 'speed'), true);
+    expect(statuses[3].upcoming.any((x) => x.sign.id.startsWith('n2:')), false);
+    expect(statuses[4].upcoming.map((x) => x.sign.kind), containsAll(['stop','noRight']));
+    expect(statuses[0].overspeed, false);
+    expect(statuses[1].overspeed, true);
+    final stale = engine.evaluate(fix: fix(const LatLng(21.285,106.194)), heading: 0, headingKnown: true, nearby: fixture, route: route, now: now.add(const Duration(seconds: 12)));
+    expect(stale.upcoming, isEmpty); expect(stale.overspeed, false); expect(stale.limit.value, isNull);
+    final weak = engine.evaluate(fix: fix(const LatLng(21.285,106.194), accuracy: 40), heading: 0, headingKnown: true, nearby: fixture, now: now);
+    expect(weak.limit.value, isNull);
+    final other = RoadEngine();
+    other.evaluate(fix: fix(const LatLng(21.2864,106.194)), heading: 0, headingKnown: true, nearby: fixture, route: route, now: now);
+    final jitter = other.evaluate(fix: fix(const LatLng(21.28599,106.194)), heading: 0, headingKnown: true, nearby: fixture, route: route, now: now);
+    expect(jitter.upcoming.any((x) => x.sign.id.startsWith('n2:')), false);
+  });
+  test('Free driving excludes oncoming road and ambiguous parallel roads', () {
+    final straight = fixture.roads.first;
+    final oneWay = RoadEdge(100, straight.geometry, {...straight.tags,'oneway':'yes'});
+    expect(matchRoad([oneWay],const LatLng(21.285,106.194),180), isNull);
+    final parallel = RoadEdge(200, NavRoute([const LatLng(21.281,106.19408),const LatLng(21.291,106.19408)],[],0,'parallel'), {'highway':'primary','maxspeed':'80'});
+    expect(matchRoad([straight,parallel], const LatLng(21.285,106.19404),0), isNull);
+    final result = RoadEngine().evaluate(fix: fix(const LatLng(21.285,106.194)), heading: 0, headingKnown: true, nearby: fixture, now: now);
+    expect(result.upcoming.any((x) => x.sign.bearing == 180), false);
+    expect(result.upcoming.any((x) => x.sign.id.startsWith('n2:')), true);
+    final conePins = [RoadSign(id:'user_front', point: const LatLng(21.282,106.194),kind:'camera',bearing:0),RoadSign(id:'user_behind',point:const LatLng(21.28,106.194),kind:'camera',bearing:0),RoadSign(id:'user_side',point:const LatLng(21.282,106.196),kind:'camera',bearing:0)];
+    final cone = RoadEngine().evaluate(fix:fix(const LatLng(21.281,106.194)),heading:0,headingKnown:true,nearby:const RoadNearby(),pins:conePins,now:now);
+    expect(cone.upcoming.map((x)=>x.sign.id),['user_front']);
+  });
+}

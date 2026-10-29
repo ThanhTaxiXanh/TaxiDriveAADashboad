@@ -9,6 +9,7 @@ import io.flutter.embedding.engine.FlutterEngineGroup
 import io.flutter.embedding.engine.dart.DartExecutor
 
 class DashboardApplication : Application() {
+    val roads by lazy { RoadStorage(this) }
     lateinit var engines: FlutterEngineGroup
     lateinit var diagnostics: Diagnostics
     lateinit var navigation: NavigationState

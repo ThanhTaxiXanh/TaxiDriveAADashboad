@@ -8,7 +8,7 @@ on:
     paths: ['tools/road_data/**', '.github/workflows/data-pack.yml']
 concurrency:
   group: road-data-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 permissions:
   contents: write
 jobs:
