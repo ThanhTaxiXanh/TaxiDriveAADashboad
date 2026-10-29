@@ -303,20 +303,56 @@ void main() {
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
-      final media=MediaController(connected:false);
+      final media = MediaController(connected: false);
       addTearDown(media.dispose);
       media.accept({
-        'source':'youtube','title':'Nhạc mẫu · kiểm tra giao diện','artist':'Bộ dữ liệu mẫu',
-        'position':90000,'duration':240000,'queueCount':12,'index':2,'playing':true,'playedMs':1800000,
-        'message':'Âm thanh · danh sách lưu riêng trên máy',
-        'library':[{'id':'sample','title':'Danh sách mẫu cho chuyến đi','entries':[{'id':'aqz-KE-bpKQ','title':'Big Buck Bunny','author':'Blender Foundation'}]}],
+        'source': 'youtube',
+        'title': 'Nhạc mẫu · kiểm tra giao diện',
+        'artist': 'Bộ dữ liệu mẫu',
+        'position': 90000,
+        'duration': 240000,
+        'queueCount': 12,
+        'index': 2,
+        'playing': true,
+        'playedMs': 1800000,
+        'message': 'Âm thanh · danh sách lưu riêng trên máy',
+        'library': [
+          {
+            'id': 'sample',
+            'title': 'Danh sách mẫu cho chuyến đi',
+            'entries': [
+              {
+                'id': 'aqz-KE-bpKQ',
+                'title': 'Big Buck Bunny',
+                'author': 'Blender Foundation',
+              },
+            ],
+          },
+        ],
       });
-      await tester.pumpWidget(MaterialApp(theme:dashboardTheme(brightness),home:Scaffold(body:RepaintBoundary(
-        key:const ValueKey('media-preview'),child:DashboardFrame(config:LayoutConfig(),map:const Center(child:Text('Ô bản đồ vẫn giữ vị trí')),rightPanel:YoutubePanel(controller:media,car:true)),
-      ))));
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: dashboardTheme(brightness),
+          home: Scaffold(
+            body: RepaintBoundary(
+              key: const ValueKey('media-preview'),
+              child: DashboardFrame(
+                config: LayoutConfig(),
+                map: const Center(child: Text('Ô bản đồ vẫn giữ vị trí')),
+                rightPanel: YoutubePanel(controller: media, car: true),
+              ),
+            ),
+          ),
+        ),
+      );
       await tester.pump();
-      expect(tester.takeException(),isNull);
-      await expectLater(find.byKey(const ValueKey('media-preview')),matchesGoldenFile('../build/previews/media-youtube-${brightness.name}.png'));
+      expect(tester.takeException(), isNull);
+      await expectLater(
+        find.byKey(const ValueKey('media-preview')),
+        matchesGoldenFile(
+          '../build/previews/media-youtube-${brightness.name}.png',
+        ),
+      );
     });
   }
   for (var page = 0; page < 3; page++) {

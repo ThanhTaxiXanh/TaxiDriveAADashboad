@@ -10,6 +10,23 @@ concurrency:
 permissions:
   contents: read
 jobs:
+  format_sources:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - uses: subosito/flutter-action@v2.21.0
+        with:
+          channel: stable
+          flutter-version: '3.47.1'
+          cache: true
+      - run: flutter pub get
+      - name: Format sources
+        run: |
+          if ! dart format --output=none --set-exit-if-changed lib test tools/ui_preview_test.dart tools/youtube_spike.dart; then
+            python3 tools/show_format.py
+            exit 1
+          fi
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 40
@@ -106,7 +123,7 @@ jobs:
         run: echo 'Chưa có khóa ký ổn định. APK debug chỉ để thử; chưa đạt cổng Giai đoạn 0.' >> "$GITHUB_STEP_SUMMARY"
   nightly:
     if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
-    needs: build
+    needs: [build, format_sources]
     runs-on: ubuntu-latest
     permissions:
       contents: write

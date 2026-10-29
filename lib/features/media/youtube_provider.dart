@@ -37,21 +37,49 @@ class ExplodeStreamProvider implements YoutubeStreamProvider {
       throw const FormatException('ID YouTube không hợp lệ');
     cancelResolve();
     final task = generation;
-    for (final mode in [yt.YoutubeApiClient.androidSdkless, yt.YoutubeApiClient.androidVr]) {
+    for (final mode in [
+      (yt.YoutubeApiClient.androidSdkless, true),
+      (yt.YoutubeApiClient.androidSdkless, false),
+      (yt.YoutubeApiClient.androidVr, false),
+    ]) {
       if (task != generation) throw const FormatException('Đã đổi bài');
       final client = yt.YoutubeExplode();
       activeResolver = client;
       try {
-        final manifest = await client.videos.streams.getManifest(id, ytClients: [mode]).timeout(const Duration(seconds: 16));
+        final manifest = await client.videos.streams
+            .getManifest(id, ytClients: [mode.$1], requireWatchPage: mode.$2)
+            .timeout(const Duration(seconds: 10));
         if (task != generation) throw const FormatException('Đã đổi bài');
-        final audio = manifest.audioOnly.where((s) => s.fragments.isEmpty).toList()
-          ..sort((a, b) {
-            final container = (a.container == yt.StreamContainer.mp4 ? 0 : 1).compareTo(b.container == yt.StreamContainer.mp4 ? 0 : 1);
-            return container != 0 ? container : b.bitrate.bitsPerSecond.compareTo(a.bitrate.bitsPerSecond);
-          });
+        final audio =
+            manifest.audioOnly.where((s) => s.fragments.isEmpty).toList()
+              ..sort((a, b) {
+                final container =
+                    (a.container == yt.StreamContainer.mp4 ? 0 : 1).compareTo(
+                      b.container == yt.StreamContainer.mp4 ? 0 : 1,
+                    );
+                return container != 0
+                    ? container
+                    : b.bitrate.bitsPerSecond.compareTo(
+                        a.bitrate.bitsPerSecond,
+                      );
+              });
         if (audio.isEmpty) continue;
-        final video = manifest.videoOnly.where((s) => s.fragments.isEmpty && s.container == yt.StreamContainer.mp4 && s.videoCodec.startsWith('avc1') && s.videoResolution.height <= 720 && s.videoResolution.width <= 1280).toList()
-          ..sort((a, b) => b.videoResolution.height.compareTo(a.videoResolution.height));
+        final video =
+            manifest.videoOnly
+                .where(
+                  (s) =>
+                      s.fragments.isEmpty &&
+                      s.container == yt.StreamContainer.mp4 &&
+                      s.videoCodec.startsWith('avc1') &&
+                      s.videoResolution.height <= 720 &&
+                      s.videoResolution.width <= 1280,
+                )
+                .toList()
+              ..sort(
+                (a, b) => b.videoResolution.height.compareTo(
+                  a.videoResolution.height,
+                ),
+              );
         return YoutubeStreams(audio.first.url, video.firstOrNull?.url);
       } catch (_) {
         if (task != generation) rethrow;

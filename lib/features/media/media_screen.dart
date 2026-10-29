@@ -195,6 +195,17 @@ class _YoutubePanelState extends State<YoutubePanel> {
             Expanded(
               child: ListView(
                 children: [
+                  OutlinedButton.icon(
+                    onPressed: () => unawaited(media.chooseSource('external')),
+                    icon: const Icon(Icons.library_music),
+                    label: const Text('Điều khiển app nhạc'),
+                  ),
+                  if (s.isExternal) ...[
+                    Text(s.displayTitle, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 18)),
+                    MediaControls(controller: media, state: s),
+                    if (widget.car && s.external['permission'] != true)
+                      const Text('Cấp Truy cập thông báo trên điện thoại để điều khiển app nhạc.', style: TextStyle(fontSize: 16)),
+                  ],
                   if (showVideo)
                     AspectRatio(
                       aspectRatio: s.aspect.isFinite && s.aspect > 0

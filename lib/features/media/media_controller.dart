@@ -42,12 +42,16 @@ class MediaController extends ChangeNotifier {
   List<MediaEntry> recent = const [];
   bool closed = false, busy = false;
   String? message, resolving;
+  int revision = -1;
   void notify() {
     if (!closed) notifyListeners();
   }
 
   void accept(Map j) {
     if (closed) return;
+    final incoming = (j['revision'] as num?)?.toInt();
+    if (incoming != null && incoming < revision) return;
+    if (incoming != null) revision = incoming;
     state = MediaSnapshot.fromJson(j);
     if (j['library'] is List)
       library = [
@@ -59,6 +63,10 @@ class MediaController extends ChangeNotifier {
       ];
     notify();
     final request = j['request'];
+    if (worker && j.containsKey('request') && request == null && resolving != null) {
+      resolving = null;
+      if (provider is ExplodeStreamProvider) (provider as ExplodeStreamProvider).cancelResolve();
+    }
     if (worker && request is Map && request['token'] != resolving) {
       resolving = request['token'] as String;
       unawaited(

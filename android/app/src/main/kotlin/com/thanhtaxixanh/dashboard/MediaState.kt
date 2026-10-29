@@ -79,7 +79,7 @@ class MediaState(private val app: DashboardApplication) {
     fun add(sink: EventChannel.EventSink) { sinks.add(sink); ensureTick(); external.refresh(); sink.success(snapshot()) }
     fun remove(sink: EventChannel.EventSink?) { sinks.remove(sink); stopTickIfIdle() }
     private fun stopTickIfIdle() { if (sinks.isEmpty() && service == null) { ticking = false; handler.removeCallbacks(tick) } }
-    fun emit(full: Boolean = false) { if (sinks.isNotEmpty()) { val raw = snapshot(full); sinks.toList().forEach { it.success(raw) } } }
+    fun emit(full: Boolean = false) { revision++; if (sinks.isNotEmpty()) { val raw = snapshot(full); sinks.toList().forEach { it.success(raw) } } }
     private fun current(): JSONObject? = queue.optJSONObject(index)
     fun videoSafe(): Boolean {
         val nav = app.navigation; val fix = nav.fix ?: return false
@@ -168,7 +168,7 @@ class MediaState(private val app: DashboardApplication) {
                 } else { wantedPlaying=false; pending=false; message="Không phát được luồng này. Kiểm tra mạng hoặc chọn bài khác"; emit() }
             }
             override fun onVideoSizeChanged(size: VideoSize) {
-                if (size.width>0 && size.height>0) { width=size.width; height=size.height; resizeSurface?.invoke(width,height); updateVideo(); emit() }
+                if (size.width>0 && size.height>0 && (width!=size.width || height!=size.height)) { width=size.width; height=size.height; resizeSurface?.invoke(width,height); updateVideo(forceSurface=true); emit() }
             }
         })
         if (resolver==null) resolver=app.engine("mediaMain")
@@ -234,19 +234,19 @@ class MediaState(private val app: DashboardApplication) {
     fun motionChanged() { updateVideo(); emit() }
     fun attachSurface(owner: Any, car: Boolean, value: (() -> Surface?), resize: (Int,Int)->Unit) {
         if (app.navigation.carConnected && !car) return
-        surfaceOwner=owner; surfaceCar=car; surface=value; resizeSurface=resize; resize(width,height); updateVideo()
+        surfaceOwner=owner; surfaceCar=car; surface=value; resizeSurface=resize; resize(width,height); updateVideo(forceSurface=true)
     }
-    fun removeSurface(owner: Any) { if (surfaceOwner===owner) { surface=null; resizeSurface=null; surfaceOwner=null; player?.clearVideoSurface(); visibleVideo=false; emit() } }
-    private fun updateVideo() {
+    fun removeSurface(owner: Any) { if (surfaceOwner===owner) { surface=null; resizeSurface=null; surfaceOwner=null; updateVideo(forceSurface=true); emit() } }
+    private fun updateVideo(forceSurface: Boolean = false) {
         val connected=app.navigation.carConnected
         if (lastCarConnection != connected) { videoRequested=false; lastCarConnection=connected }
         val safe=videoSafe()
         if (!safe) videoRequested=false // No automatic reappearance after moving.
         val show=source=="youtube" && hasVideo && videoRequested && safe && surface!=null && (!app.navigation.carConnected || surfaceCar)
-        if (show!=visibleVideo) {
+        if (show!=visibleVideo || forceSurface) {
             visibleVideo=show
             player?.trackSelectionParameters=player!!.trackSelectionParameters.buildUpon().setTrackTypeDisabled(C.TRACK_TYPE_VIDEO,!show).build()
             if (show) player?.setVideoSurface(surface?.invoke()) else player?.clearVideoSurface()
-        } else if (show) player?.setVideoSurface(surface?.invoke())
+        }
     }
 }
