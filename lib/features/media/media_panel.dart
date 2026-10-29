@@ -19,6 +19,15 @@ class MediaPanel extends StatelessWidget {
         );
   Widget content(BuildContext context, MediaSnapshot state) => LayoutBuilder(
     builder: (context, bounds) {
+      if (bounds.maxHeight < 60) {
+        return Padding(
+          padding: const EdgeInsets.all(4),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: MediaControls(controller: controller, state: state),
+          ),
+        );
+      }
       final factor = fontScale.clamp(.8, 1.6);
       final titleSize = (18 * factor).clamp(16.0, 28.8);
       final artistSize = (16 * factor).clamp(16.0, 25.6);

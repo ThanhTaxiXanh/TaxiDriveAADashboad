@@ -168,6 +168,7 @@ class _YoutubePanelState extends State<YoutubePanel> {
     builder: (context, _) {
       final s = media.state;
       final showVideo =
+          !s.isExternal &&
           s.videoRequested &&
           s.videoSafe &&
           s.hasVideo &&

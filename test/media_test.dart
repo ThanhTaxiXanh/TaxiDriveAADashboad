@@ -194,7 +194,7 @@ void main() {
       expect(calls, hasLength(1));
     },
   );
-  for (final height in [64.0, 110.0, 180.0, 260.0]) {
+  for (final height in [50.0, 64.0, 110.0, 180.0, 260.0]) {
     for (final scale in [1.0,1.6]) {
     testWidgets('Media row fits 194 px width and height $height at scale $scale', (
       tester,

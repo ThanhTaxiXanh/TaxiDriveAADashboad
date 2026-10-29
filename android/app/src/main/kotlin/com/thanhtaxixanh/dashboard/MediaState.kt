@@ -133,7 +133,7 @@ class MediaState(private val app: DashboardApplication) {
     private fun persist() { prefs.edit().putString("library",library.toString()).putString("recent",recent.toString()).putString("source",source).apply() }
     fun chooseSource(next: String) {
         require(next == "external" || next == "youtube")
-        if (next == "external") { wantedPlaying=false; pending=false; revision++; player?.pause(); message="Điều khiển ứng dụng nhạc" }
+        if (next == "external") { videoRequested=false; wantedPlaying=false; pending=false; revision++; player?.pause(); message="Điều khiển ứng dụng nhạc" }
         source=next; persist(); updateVideo(); external.refresh(); emit()
     }
     fun playSaved(id: String, offset: Int = 0) {
@@ -176,7 +176,7 @@ class MediaState(private val app: DashboardApplication) {
         emit()
     }
     fun detach() {
-        samplePlayTime(); wasPlaying=false; service=null; player=null; pending=false; wantedPlaying=false; revision++; visibleVideo=false
+        samplePlayTime(); wasPlaying=false; service=null; player=null; pending=false; wantedPlaying=false; videoRequested=false; hasVideo=false; lastAudio=null; revision++; visibleVideo=false
         val old=resolver; resolver=null; handler.post { old?.destroy() }; stopTickIfIdle(); emit()
     }
     private fun request(keepRetry: Boolean = false, keepPosition: Boolean = false) {
@@ -227,7 +227,7 @@ class MediaState(private val app: DashboardApplication) {
             "next" -> skip(1)
             "previous" -> if ((player?.currentPosition ?: 0)>3000) player?.seekTo(0) else skip(-1)
             "seek" -> if (!pending) player?.seekTo(position.coerceIn(0,(player?.duration ?: 0).coerceAtLeast(0)))
-            "stop" -> { wantedPlaying=false; pending=false; revision++; player?.stop(); player?.clearMediaItems(); message="Đã dừng YouTube"; service?.stopSelf() }
+            "stop" -> { wantedPlaying=false; pending=false; videoRequested=false; hasVideo=false; lastAudio=null; revision++; player?.stop(); player?.clearMediaItems(); message="Đã dừng YouTube"; service?.stopSelf() }
         }
         updateVideo(); emit()
     }
@@ -242,7 +242,7 @@ class MediaState(private val app: DashboardApplication) {
         val connected=app.navigation.carConnected
         if (lastCarConnection != connected) { videoRequested=false; lastCarConnection=connected }
         val safe=videoSafe()
-        if (!safe) videoRequested=false // No automatic reappearance after moving.
+        if (!safe || source!="youtube") videoRequested=false // No automatic reappearance after moving.
         val show=source=="youtube" && hasVideo && videoRequested && safe && surface!=null && (!app.navigation.carConnected || surfaceCar)
         if (show!=visibleVideo || forceSurface) {
             visibleVideo=show
