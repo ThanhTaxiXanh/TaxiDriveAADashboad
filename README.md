@@ -1,10 +1,10 @@
 # Taxi Xanh · Android Auto Dashboard
 
-**Giai đoạn 6 — v0.6.0: điều khiển nhạc và bảng YouTube.** Thanh xác nhận v0.5.1 tạm ổn và chỉ đạo tiếp. [Danh sách công việc và tiêu chí còn lại](docs/PROGRESS.md). Giữ bản đồ 60°, lịch, QR, gói đường và khóa ký.
+**Giai đoạn 6 — v0.6.1: điều khiển nhạc và bảng YouTube.** Thanh xác nhận v0.5.1 tạm ổn và chỉ đạo tiếp. [Danh sách công việc và tiêu chí còn lại](docs/PROGRESS.md). Giữ bản đồ 60°, lịch, QR, gói đường và khóa ký.
 
 ## Cài và bật vị trí trên điện thoại
 
-1. Cài đè [APK arm64 nightly](https://github.com/ThanhTaxiXanh/TaxiDriveAADashboad/releases/download/nightly/app-arm64-v8a-release.apk) khi Releases ghi **Giai đoạn 6 · v0.6.0**. Không đổi khóa ký hoặc gỡ app.
+1. Cài đè [APK arm64 nightly](https://github.com/ThanhTaxiXanh/TaxiDriveAADashboad/releases/download/nightly/app-arm64-v8a-release.apk) khi Releases ghi **Giai đoạn 6 · v0.6.1**. Không đổi khóa ký hoặc gỡ app.
 2. Mở **Bản đồ và dẫn đường → Bật vị trí** khi app đang mở. Cấp quyền vị trí khi dùng app, bật **Vị trí chính xác**, cho phép thông báo để thấy nút **Dừng vị trí**. Sau đó bấm **Cho phép vị trí Luôn luôn → Mở cài đặt**, vào **Quyền ứng dụng → Vị trí → Luôn cho phép** (Android 13), giữ **Vị trí chính xác**. Đây là quyền riêng, cần anh bật trong cài đặt hệ thống. Dịch vụ foreground tiếp tục GPS khi điện thoại tắt màn hình.
 3. Chờ dòng **GPS chính xác**. Nếu chưa có, bật GPS hệ thống/ra nơi thoáng; mở **Quyền ứng dụng** nếu trước đó từ chối. Giọng đọc cần bộ giọng Việt ngoại tuyến đã cài trong máy; nút **Cài dữ liệu giọng đọc** mở công cụ hệ thống. Thiếu giọng vẫn có chữ chỉ đường.
 4. Nhập tên địa điểm rồi bấm **Tìm địa điểm**, chọn **Dẫn đường**. Có thể nhập `vĩ độ,kinh độ` để bỏ qua tra cứu mạng. Bấm sao để lưu yêu thích. Trên xe chỉ chọn **Yêu thích và gần đây**, không có bàn phím.
@@ -13,11 +13,16 @@
 
 ## Nhạc và YouTube
 
+
+Bản 0.6.1 chạy trình YouTube ngay trong dashboard. Hàng đợi được công bố cho Android Auto/MediaSession để nhận phím media trên vô lăng. Nút bài trước đổi sang bài trước, không chỉ tua về đầu. Khi chọn app nhạc khác, phiên YouTube nhả quyền nhận phím để Android chuyển điều khiển về app đó.
+
+Lấy nội dung công khai trực tiếp, không dùng trang YouTube có quảng cáo hoặc chèn ad SDK vào trình phát. Đây chưa phải cam kết mọi video/mạng đều phát được: phiên bản 0.6.0 đã được Thanh báo chưa phát được; bản 0.6.1 thêm client tương thích, kiểm tra byte media và phương án một luồng video 360p khi cần (có thể dùng thêm dữ liệu). Luôn kiểm tra lại bằng mạng điện thoại.
+
 1. Mở **Nhạc và YouTube** trên điện thoại. Để điều khiển Spotify/Zing MP3/YouTube Music…, chọn **Ứng dụng nhạc đang chạy**, mở **Truy cập thông báo** và bật Taxi Xanh. Mở app nhạc, phát một bài, quay lại kiểm tra tên/bìa và các nút. Nếu Android 13 chặn quyền của APK cài ngoài, vào Thông tin ứng dụng → ⋮ → Cho phép cài đặt bị hạn chế rồi bật lại quyền. Ứng dụng chỉ dùng quyền để lấy MediaSession, không đọc nội dung thông báo.
 2. Dùng **Tìm video** hoặc dán link và **Lưu liên kết / playlist**. Danh sách công khai được lưu riêng trên máy (tối đa 200 bài mỗi danh sách). Bấm Phát để kiểm tra mạng điện thoại trước chuyến đi. Trên xe, mở icon YouTube, chọn Yêu thích / Danh sách / Gần đây bằng nút lớn; cột bản đồ vẫn hiện.
 3. Mặc định phát **âm thanh**. Khi xe đang đỗ, bật GPS chính xác, chờ có tốc độ hợp lệ dưới 5 km/h rồi bấm **Xem video khi đỗ**. Video khóa khi tốc độ từ 5 km/h, vị trí cũ/yếu hoặc GPS dừng. Tiếng tiếp tục, hình chỉ bật lại khi anh bấm; không tự xuất hiện sau khi xe dừng.
 4. Hàng Media có trước/phát-tạm dừng/sau, tên bài, tiến trình; đủ cao mới thêm nghệ sĩ/bìa. App nhạc khác có thể không hỗ trợ đủ nút. Trình phát YouTube có foreground notification và tiếp tục khi tắt màn hình điện thoại. Đang dùng nguồn YouTube có thể bấm Dừng để kết thúc.
-5. Cần thử trên xe: điều khiển một app nhạc; phát playlist ít nhất **30 phút**, kiểm tra tự chuyển bài và tiếng dẫn đường; kiểm tra khóa video khi di chuyển/mất GPS/ngắt AA. Đồng hồ **Thời gian phát thực** chỉ cộng lúc player đang phát. CI không thay nghiệm thu này.
+5. Cần thử trên xe: điều khiển một app nhạc; phát playlist ít nhất **30 phút**, kiểm tra tự chuyển bài và tiếng dẫn đường; kiểm tra khóa video khi di chuyển/mất GPS/ngắt AA. Đồng hồ **Thời gian phát thực** chỉ cộng lúc player đang phát. CI không thay nghiệm thu này. Khi âm thanh đang phát, thử phím kế/trước và phát-dừng trên vô lăng ở cả nguồn YouTube và app nhạc. Nếu host không chuyển phím media chuẩn tới app thì cần kiểm tra trên VF e34 thực tế.
 
 YouTube dùng trình lấy luồng trực tiếp cho nội dung công khai, không cần API key/thẻ; không đăng nhập và chưa hỗ trợ livestream/DRM/nội dung riêng tư/giới hạn tuổi. Luồng có thể bị YouTube chặn hoặc thay đổi. Phép thử mạng trên CI chưa xác nhận phát trên điện thoại; chưa tuyên bố đạt playlist 30 phút. Chi tiết kiến trúc, phép thử và giấy phép trong [MEDIA_NOTES.md](docs/MEDIA_NOTES.md).
 

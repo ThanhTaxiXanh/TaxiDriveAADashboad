@@ -65,6 +65,11 @@ jobs:
         continue-on-error: true
         timeout-minutes: 2
         run: dart run tools/youtube_spike.dart
+      - name: Independent extractor compatibility probe
+        if: github.event_name != 'pull_request'
+        continue-on-error: true
+        timeout-minutes: 5
+        run: bash android/gradlew -p tools/youtube_candidate classes run --no-daemon
       - name: Export first-review golden previews
         timeout-minutes: 3
         run: flutter test tools/ui_preview_test.dart --update-goldens
@@ -83,7 +88,7 @@ jobs:
           KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
         run: python3 tools/configure_signing.py
       - name: MediaSession and media button Android contract
-        run: bash android/gradlew :app:testDebugUnitTest --no-daemon
+        run: bash android/gradlew -p android :app:testDebugUnitTest --no-daemon
       - name: Build diagnostic APK
         run: flutter build apk --debug --build-number=${{ github.run_number }}
       - name: Require formatted sources

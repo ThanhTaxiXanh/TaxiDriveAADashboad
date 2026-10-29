@@ -31,3 +31,14 @@ Hàng đợi tối đa 200 bài, 60 danh sách và 40 bài gần đây, lưu met
 4. Khi đỗ, bật GPS chính xác và chờ có tốc độ hợp lệ; bấm Xem video khi đỗ. Kiểm tra video tự ẩn khi xe vượt 5 km/h, tắt GPS hoặc ngắt AA; âm thanh vẫn hoạt động. Dừng lại không tự bật hình. Kiểm tra lại Theo xe, QR và lịch.
 
 Không đánh dấu các bước này đạt khi chưa có thử xe thật.
+
+
+## Bản sửa 0.6.1 · YouTube nội bộ và phím vô lăng
+
+Thanh báo bản 0.6.0 chưa phát được YouTube. Giữ hình chỉ khi đỗ; âm thanh và phím chuyển bài hoạt động trong chế độ nghe khi di chuyển.
+
+- Session công bố playlist thật thay vì chỉ một URL ExoPlayer đang mở. Adapter ForwardingSimpleBasePlayer giữ capability và callback nhất quán khi tải/chuyển bài; trước là bài trước. Callback phím media bỏ key-up, repeat và bản gửi trùng. Phím volume/DPAD không bị chặn. Activity fallback chỉ nhận phím được hệ thống gửi trực tiếp, không nghe phím toàn hệ thống.
+- Chọn nguồn app nhạc ngoài sẽ nhả MediaSession YouTube ngay; MediaSession của app nhạc đó nhận phím theo cơ chế Android/Android Auto. Không dùng root hay Accessibility. Handoff có kiểm tra owner để callback service cũ không xóa player mới.
+- Thêm client tương thích VISIONOS dựa trên [đề xuất upstream #389](https://github.com/Hexer10/youtube_explode_dart/pull/389), giữ Android fallback. Đây là candidate từ upstream, không tuyên bố API chính thức bền vững. [Upstream stream client](https://github.com/Hexer10/youtube_explode_dart/blob/master/lib/src/videos/streams/stream_client.dart) cảnh báo Android có thể từ chối nhiều luồng từ cùng manifest. Vì vậy không ghép audio/video riêng từ các client Android fallback.
+- Kiểm tra GET Range đọc byte media đã chọn, kiểm status/content-type và đóng HTTP client ngay sau dữ liệu đầu. Lỗi 403/HTML challenge/body rỗng không đưa sang player. Nếu audio riêng không dùng được, thử muxed MP4 tối đa 360p; native đọc một nguồn, video track vẫn tắt mặc định và bị khóa theo GPS hiện có. Cách này không thêm ad SDK/WebView, không vượt nội dung riêng tư/DRM/giới hạn tuổi, không đăng nhập hay nhập cookie.
+- Giới hạn dữ liệu, keystore, bản đồ, QR và lịch giữ nguyên. Cần xác minh byte-read từ CI và phát/nhận phím thật trên Redmi/VF e34; test tự động không chứng minh host chuyển mọi loại nút vô lăng.

@@ -5,7 +5,12 @@ import 'youtube_clients.dart';
 import 'youtube_probe.dart';
 
 class YoutubeStreams {
-  const YoutubeStreams(this.audio, this.video, {this.muxed = false, this.client = 'unknown'});
+  const YoutubeStreams(
+    this.audio,
+    this.video, {
+    this.muxed = false,
+    this.client = 'unknown',
+  });
   final Uri audio;
   final Uri? video;
   final bool muxed;
@@ -82,16 +87,37 @@ class ExplodeStreamProvider implements YoutubeStreamProvider {
               );
         if (audio.isNotEmpty && await probeYoutubeMedia(audio.first.url)) {
           if (task != generation) throw const FormatException('Đã đổi bài');
-          final picture = mode.$1 == 'vision' && video.isNotEmpty && await probeYoutubeMedia(video.first.url)
-              ? video.first.url : null;
+          final picture =
+              mode.$1 == 'vision' &&
+                  video.isNotEmpty &&
+                  await probeYoutubeMedia(video.first.url)
+              ? video.first.url
+              : null;
           if (task != generation) throw const FormatException('Đã đổi bài');
           return YoutubeStreams(audio.first.url, picture, client: mode.$1);
         }
-        final muxed = manifest.muxed.where((s) => s.fragments.isEmpty && s.container == yt.StreamContainer.mp4 && s.videoResolution.height <= 360).toList()
-          ..sort((a,b) => b.videoResolution.height.compareTo(a.videoResolution.height));
+        final muxed =
+            manifest.muxed
+                .where(
+                  (s) =>
+                      s.fragments.isEmpty &&
+                      s.container == yt.StreamContainer.mp4 &&
+                      s.videoResolution.height <= 360,
+                )
+                .toList()
+              ..sort(
+                (a, b) => b.videoResolution.height.compareTo(
+                  a.videoResolution.height,
+                ),
+              );
         if (muxed.isNotEmpty && await probeYoutubeMedia(muxed.first.url)) {
           if (task != generation) throw const FormatException('Đã đổi bài');
-          return YoutubeStreams(muxed.first.url, null, muxed: true, client: mode.$1);
+          return YoutubeStreams(
+            muxed.first.url,
+            null,
+            muxed: true,
+            client: mode.$1,
+          );
         }
       } catch (_) {
         if (task != generation) rethrow;
