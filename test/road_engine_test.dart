@@ -307,12 +307,27 @@ void main() {
   });
   test('Free cone keeps pass hysteresis and rearms after a gradual U-turn', () {
     final engine = RoadEngine();
-    final pins = [RoadSign(id: 'user_both', point: const LatLng(21.282, 106.194), kind: 'camera')];
-    RoadStatus sample(double lat, double heading) => engine.evaluate(fix: fix(LatLng(lat, 106.194), heading: heading), heading: heading, headingKnown: true, nearby: const RoadNearby(), pins: pins, now: now);
+    final pins = [
+      RoadSign(
+        id: 'user_both',
+        point: const LatLng(21.282, 106.194),
+        kind: 'camera',
+      ),
+    ];
+    RoadStatus sample(double lat, double heading) => engine.evaluate(
+      fix: fix(LatLng(lat, 106.194), heading: heading),
+      heading: heading,
+      headingKnown: true,
+      nearby: const RoadNearby(),
+      pins: pins,
+      now: now,
+    );
     expect(sample(21.281, 0).upcoming, hasLength(1));
     expect(sample(21.2823, 0).upcoming, isEmpty);
     expect(sample(21.28199, 0).upcoming, isEmpty);
-    for (final heading in [54.0, 92.0, 118.0, 137.0]) { sample(21.283, heading); }
+    for (final heading in [54.0, 92.0, 118.0, 137.0]) {
+      sample(21.283, heading);
+    }
     expect(sample(21.283, 170).upcoming, hasLength(1));
   });
   test('Free driving excludes oncoming road and ambiguous parallel roads', () {

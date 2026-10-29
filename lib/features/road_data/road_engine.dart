@@ -321,10 +321,18 @@ class RoadEngine {
         if (item.bearing != null) travel = match.heading;
       } else {
         final d = meters(fix.point, item.point);
-        final difference = angleDifference(course(fix.point, item.point), heading);
+        final difference = angleDifference(
+          course(fix.point, item.point),
+          heading,
+        );
         if (difference > 150 && d > 2) {
-          if (item.bearing != null && angleDifference(item.bearing!, heading) >= 60) continue;
-          if (d > 20) { passed.add(item.id); continue; }
+          if (item.bearing != null &&
+              angleDifference(item.bearing!, heading) >= 60)
+            continue;
+          if (d > 20) {
+            passed.add(item.id);
+            continue;
+          }
           if (!visible.contains(item.id)) continue;
           delta = -d;
         } else {
