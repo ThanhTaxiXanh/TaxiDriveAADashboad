@@ -142,7 +142,7 @@ class _RoadScreenState extends State<RoadScreen> {
             label: const Text('Tải / cập nhật dữ liệu Việt Nam'),
           ),
           const Text(
-            'Tải qua Wi-Fi trước chuyến đi. Gói riêng dùng cho tốc độ/biển báo, hoạt động ngoại tuyến; không phải gói nền bản đồ hoặc tìm đường offline. Dữ liệu dựng hằng tháng từ Geofabrik/OSM, giấy phép ODbL. © OpenStreetMap contributors.',
+            'Gói toàn quốc có thể vài trăm MB, cần đủ chỗ trống. Tải qua Wi-Fi trước chuyến đi. Gói riêng dùng cho tốc độ/biển báo, hoạt động ngoại tuyến; không phải gói nền bản đồ hoặc tìm đường offline. Dữ liệu dựng hằng tháng từ Geofabrik/OSM, giấy phép ODbL. © OpenStreetMap contributors.',
           ),
           const Divider(),
           const Text('Ghim của anh', style: TextStyle(fontSize: 22)),

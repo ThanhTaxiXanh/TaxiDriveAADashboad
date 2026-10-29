@@ -52,6 +52,18 @@ def sign_types(raw, tags):
         if kind and (kind != 'speed' or value is not None): result.append((kind, value))
     return list(dict.fromkeys(result))
 
+def encode_polyline6(points):
+    previous=[0,0]; result=[]
+    for point in points:
+        for axis in range(2):
+            value=math.floor(point[axis]*1000000+.5)
+            delta=value-previous[axis]; previous[axis]=value
+            encoded=~(delta<<1) if delta<0 else delta<<1
+            while encoded>=32:
+                result.append(chr((32|(encoded&31))+63)); encoded>>=5
+            result.append(chr(encoded+63))
+    return ''.join(result)
+
 def compact(value): return json.dumps(value, ensure_ascii=False, separators=(',', ':'))
 
 def kept_tags(tags):
@@ -135,12 +147,13 @@ class Builder:
         for end in range(1,len(points)):
             if end == len(points)-1 or end-start >= 127 or cumulative[end]-cumulative[start] >= 2500:
                 chunk = points[start:end+1]
-                payload = {'id':ident,'offset':round(cumulative[start],2),'points':chunk,'tags':clean}
+                payload = {'id':ident,'offset':round(cumulative[start],2),'shape':encode_polyline6(chunk),'tags':clean}
                 row = self.db.execute('INSERT INTO roads VALUES(NULL,?,?)',(ident,compact(payload))).lastrowid
                 self.db.execute('INSERT INTO roads_rtree VALUES(?,?,?,?,?)',(row,min(p[1] for p in chunk),max(p[1] for p in chunk),min(p[0] for p in chunk),max(p[0] for p in chunk)))
                 self.counts['road_parts'] += 1
                 start = end
         self.counts['roads'] += 1
+        if self.counts['roads'] % 100000 == 0: print(f'Processed {self.counts["roads"]} road ways',flush=True)
         if 'maxspeed' in tags: self.counts['roads_maxspeed'] += 1
         for index,ref in enumerate(refs):
             if ref in self.nodes:
@@ -187,7 +200,7 @@ class Builder:
         self.db.execute('INSERT INTO metadata VALUES(?,?)',('info',compact(meta)))
         self.db.commit()
         assert self.db.execute('PRAGMA quick_check').fetchone()[0] == 'ok'
-        self.db.execute('ANALYZE'); self.db.commit(); self.db.close()
+        self.db.execute('ANALYZE'); self.db.commit(); self.db.execute('VACUUM'); self.db.close()
         return meta
 
 def build(source, output):
@@ -213,6 +226,7 @@ def build(source, output):
                 if n.location.valid(): builder.node(n.id,[round(n.location.lat,7),round(n.location.lon,7)],dict(n.tags))
             def relation(self,r): builder.relation(r.id,dict(r.tags),[(m.role,m.type,m.ref) for m in r.members])
         First().apply_file(str(source))
+        print(f'Collected {len(builder.nodes)} signed nodes and {len(builder.relations)} relations',flush=True)
         wanted={ref for _,_,members in builder.relations for _,typ,ref in members if typ=='n'}
         class Roads(osmium.SimpleHandler):
             def node(self,n):
@@ -230,7 +244,8 @@ if __name__ == '__main__':
     with path.open('rb') as inp,gzip.open(compressed,'wb',compresslevel=6) as out:
         import shutil
         shutil.copyfileobj(inp,out)
-    assert compressed.stat().st_size < 200*1024*1024, 'Pack too large for mobile download'
+    print(json.dumps({'gzip_bytes':compressed.stat().st_size,'database_bytes':path.stat().st_size,'counts':meta['counts']}),flush=True)
+    assert compressed.stat().st_size < 384*1024*1024, 'Pack too large for mobile download'
     assert path.stat().st_size < 1536*1024*1024, 'Database too large for mobile storage'
     sha=hashlib.file_digest(compressed.open('rb'),'sha256').hexdigest()
     meta['builder_sha']=hashlib.sha256(Path(__file__).read_bytes()).hexdigest()

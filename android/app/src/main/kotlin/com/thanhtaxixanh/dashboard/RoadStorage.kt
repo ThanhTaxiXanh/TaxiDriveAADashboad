@@ -135,7 +135,7 @@ class RoadStorage(private val context: Context) {
                 val manifest=try { val bytes=ByteArrayOutputStream(); manifestConnection.inputStream.use { input -> val buffer=ByteArray(8192); while(true) { val count=input.read(buffer); if(count<0) break; require(bytes.size()+count<=128*1024); bytes.write(buffer,0,count) } }; JSONObject(bytes.toString("UTF-8")) } finally { manifestConnection.disconnect() }
                 require(manifest.getInt("schema")==1 && manifest.getString("country")=="VN" && manifest.getString("file")=="vietnam-roads.sqlite.gz")
                 val bytes=manifest.getLong("bytes"); val dbBytes=manifest.getLong("db_bytes"); val expected=manifest.getString("sha256")
-                require(bytes in 1..(200L*1024*1024) && dbBytes in 1..(1536L*1024*1024) && expected.matches(Regex("[a-f0-9]{64}")))
+                require(bytes in 1..(384L*1024*1024) && dbBytes in 1..(1536L*1024*1024) && expected.matches(Regex("[a-f0-9]{64}")))
                 require(context.filesDir.usableSpace > bytes+dbBytes+32L*1024*1024)
                 val c=connection(root+"vietnam-roads.sqlite.gz"); val digest=MessageDigest.getInstance("SHA-256")
                 try {

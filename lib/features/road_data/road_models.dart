@@ -89,7 +89,9 @@ class RoadEdge {
   factory RoadEdge.fromJson(Map j) => RoadEdge(
     (j['id'] as num).toInt(),
     NavRoute(
-      [for (final p in j['points']) coordinate(p[0], p[1])],
+      j['shape'] is String
+          ? decodePolyline6(j['shape'] as String)
+          : [for (final p in j['points']) coordinate(p[0], p[1])],
       [],
       0,
       'offline',

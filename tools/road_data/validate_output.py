@@ -9,7 +9,7 @@ folder=Path(sys.argv[1]); meta=json.loads((folder/'manifest.json').read_text())
 assert meta['schema']==1 and meta['country']=='VN'
 assert meta['file']=='vietnam-roads.sqlite.gz'
 archive=folder/meta['file']
-assert archive.stat().st_size==meta['bytes']<200*1024*1024
+assert archive.stat().st_size==meta['bytes']<384*1024*1024
 with archive.open('rb') as inp: assert hashlib.file_digest(inp,'sha256').hexdigest()==meta['sha256']
 db_path=folder/'vietnam-roads.sqlite'
 if not db_path.exists():

@@ -3,10 +3,12 @@ import sqlite3
 import tempfile
 import unittest
 from pathlib import Path
-from build_pack import build, sign_types, speed
+from build_pack import build, sign_types, speed, encode_polyline6
 
 ROOT=Path(__file__).resolve().parents[2]
 class PackTest(unittest.TestCase):
+    def test_polyline6_cross_language_vector(self):
+        self.assertEqual(encode_polyline6([[21.281,106.194],[21.282,106.194],[21.282,106.196]]), r'om{qg@_dqpiEo}@??_|B')
     def test_observed_vietnam_tags_and_unknowns(self):
         self.assertEqual(sign_types('VN:401,127[60]',{}),[('speed',60)])
         self.assertEqual(sign_types('VN:P.103c',{}),[('noLeft',None)])

@@ -3,20 +3,7 @@
     {
       "id": 100,
       "offset": 0.0,
-      "points": [
-        [
-          21.281,
-          106.194
-        ],
-        [
-          21.286,
-          106.194
-        ],
-        [
-          21.291,
-          106.194
-        ]
-      ],
+      "shape": "om{qg@_dqpiEowH?owH?",
       "tags": {
         "highway": "primary",
         "maxspeed:forward": "60",
@@ -26,20 +13,7 @@
     {
       "id": 101,
       "offset": 0.0,
-      "points": [
-        [
-          21.291,
-          106.194
-        ],
-        [
-          21.291,
-          106.199
-        ],
-        [
-          21.291,
-          106.204
-        ]
-      ],
+      "shape": "o~nrg@_dqpiE?owH?owH",
       "tags": {
         "highway": "primary",
         "maxspeed": "80",
